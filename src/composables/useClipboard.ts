@@ -5,6 +5,9 @@ interface CopyOptions {
   height?: number
 }
 
+// GitHub Pages URL base
+const GITHUB_BASE = 'https://ywh555hhh.github.io/EmoGdream'
+
 export function useClipboard() {
   const toast = ref<{ show: boolean; message: string; type: 'success' | 'error' }>({
     show: false,
@@ -36,8 +39,8 @@ export function useClipboard() {
 
   const copyEmoji = async (emoji: { path: string; name: string; emotion: string }, options: CopyOptions = {}): Promise<boolean> => {
     const { width = 16 } = options
-    // GitHub README compatible format: just width (no height), with align for inline rendering
-    const html = `<img src="${emoji.path}" alt="${emoji.name}" width="${width}" align="absmiddle">`
+    // Use full GitHub Pages URL so others can use it
+    const html = `<img src="${GITHUB_BASE}${emoji.path}" alt="${emoji.name}" width="${width}" align="absmiddle">`
     const success = await copyToClipboard(html)
     showToast(success ? 'Copied!' : 'Copy failed', success ? 'success' : 'error')
     return success
@@ -46,7 +49,7 @@ export function useClipboard() {
   const copyMultiple = async (emojis: { path: string; name: string; emotion: string }[], options: CopyOptions = {}): Promise<boolean> => {
     const { width = 16 } = options
     const html = emojis.map(e =>
-      `<img src="${e.path}" alt="${e.name}" width="${width}" align="absmiddle">`
+      `<img src="${GITHUB_BASE}${e.path}" alt="${e.name}" width="${width}" align="absmiddle">`
     ).join(' ')
     const success = await copyToClipboard(html)
     showToast(success ? `${emojis.length} emojis copied!` : 'Copy failed', success ? 'success' : 'error')
