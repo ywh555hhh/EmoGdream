@@ -45,12 +45,12 @@ const resetFilters = () => {
 }
 
 const handleCopy = async (emoji: Emoji) => {
-  await copyEmoji(emoji, { width: size.value, height: size.value })
+  await copyEmoji(emoji, { width: size.value })
 }
 
 const handleBatchCopy = async () => {
   const selected = getSelectedEmojis(filteredEmojis.value)
-  await copyMultiple(selected, { width: size.value, height: size.value })
+  await copyMultiple(selected, { width: size.value })
   selectNone()
 }
 

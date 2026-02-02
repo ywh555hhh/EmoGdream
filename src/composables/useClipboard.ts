@@ -35,18 +35,19 @@ export function useClipboard() {
   }
 
   const copyEmoji = async (emoji: { path: string; name: string; emotion: string }, options: CopyOptions = {}): Promise<boolean> => {
-    const { width = 64, height = 64 } = options
-    const html = `<img src="${emoji.path}" alt="${emoji.name}" width="${width}" height="${height}" title="${emoji.emotion}">`
+    const { width = 16 } = options
+    // GitHub README compatible format: just width (no height), with align for inline rendering
+    const html = `<img src="${emoji.path}" alt="${emoji.name}" width="${width}" align="absmiddle">`
     const success = await copyToClipboard(html)
     showToast(success ? 'Copied!' : 'Copy failed', success ? 'success' : 'error')
     return success
   }
 
   const copyMultiple = async (emojis: { path: string; name: string; emotion: string }[], options: CopyOptions = {}): Promise<boolean> => {
-    const { width = 64, height = 64 } = options
+    const { width = 16 } = options
     const html = emojis.map(e =>
-      `<img src="${e.path}" alt="${e.name}" width="${width}" height="${height}" title="${e.emotion}">`
-    ).join('\n')
+      `<img src="${e.path}" alt="${e.name}" width="${width}" align="absmiddle">`
+    ).join(' ')
     const success = await copyToClipboard(html)
     showToast(success ? `${emojis.length} emojis copied!` : 'Copy failed', success ? 'success' : 'error')
     return success

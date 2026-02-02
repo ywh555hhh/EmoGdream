@@ -1,9 +1,11 @@
 import { ref, computed } from 'vue'
 
-const SIZES: readonly [number, number, number, number, number] = [32, 48, 64, 96, 128]
+// GitHub inline emoji is about 16-20px, using sizes that fit inline text
+const SIZES: readonly [number, number, number, number, number] = [12, 16, 20, 24, 32]
 
 export function useSizeControl() {
-  const sizeIndex = ref<number>(2)
+  // Default to 16px (GitHub emoji size)
+  const sizeIndex = ref<number>(1)
 
   const size = computed((): number => SIZES[sizeIndex.value]!)
 
