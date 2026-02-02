@@ -44,6 +44,7 @@ export function useEmojis() {
 
     try {
       const stickerModules = import.meta.glob('/stickers/**/*.{png,gif,webp}', { eager: true })
+      console.log('🔍 Scanned sticker modules:', Object.keys(stickerModules).length)
 
       for (const [path, module] of Object.entries(stickerModules)) {
         const filename = path.split('/').pop() || ''
@@ -62,11 +63,14 @@ export function useEmojis() {
           emotion,
           format: ext,
           character,
-          path: path // Keep the path as-is (starts with /stickers/)
+          path: path // Keep as-is (starts with /stickers/)
         })
       }
+
+      console.log('✅ Total emojis scanned:', allEmojis.length)
+      console.log('📊 Characters found:', new Set(allEmojis.map(e => e.character)))
     } catch (e) {
-      console.error('Failed to scan stickers:', e)
+      console.error('❌ Failed to scan stickers:', e)
     }
 
     emojis.value = allEmojis.sort((a, b) => {
