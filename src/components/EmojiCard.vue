@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { Emoji } from '../composables/useEmojis'
 
 const props = withDefaults(defineProps<{
@@ -18,6 +18,15 @@ const emit = defineEmits<{
 
 const imageLoaded = ref(false)
 const imageError = ref(false)
+
+// Use Vite's BASE_URL to handle both dev and production paths
+const imagePath = computed(() => {
+  const basePath = import.meta.env.BASE_URL || '/'
+  // Remove trailing slash from basePath if present
+  const cleanBase = basePath.replace(/\/$/, '')
+  // emoji.path already starts with /stickers/, so just prepend base
+  return `${cleanBase}${props.emoji.path}`
+})
 </script>
 
 <template>
@@ -36,7 +45,7 @@ const imageError = ref(false)
     <div class="image-container">
       <img
         v-if="!imageError"
-        :src="emoji.path"
+        :src="imagePath"
         :alt="emoji.emotion"
         :style="{ width: `${size}px`, height: `${size}px` }"
         @load="imageLoaded = true"

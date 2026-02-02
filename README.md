@@ -2,21 +2,21 @@
 
 # EmoGdream ✨
 
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/nina/nina_hehe.gif" width="24" align="absmiddle"> 一款超好用的动漫表情包浏览器！
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/nina/nina_hehe.webp" width="24" align="absmiddle"> 一款超好用的动漫表情包浏览器！
 
 [![Live Demo](https://img.shields.io/badge/🚀-EmoGdream-Live-success?style=flat-square)](https://ywh555hhh.github.io/EmoGdream/)
-[![Vue 3](https://img.shields.io/badge/Vue-3.5-27-36b1a2?style=flat-square&logo=vue.js)](https://vuejs.org/)
+[![Vue 3](https://img.shields.io/badge/Vue-3.5.27-36b1a2?style=flat-square&logo=vue.js)](https://vuejs.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 ---
 
 ## 💡 为什么要用 EmoGdream？
 
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/hitori/hitori_expect.png" width="20" align="absmiddle"> 是不是经常在想：**"我的 GitHub README 好单调啊..."**
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/hitori/hitori_expect.webp" width="20" align="absmiddle"> 是不是经常在想：**"我的 GitHub README 好单调啊..."**
 
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomo/tomo_ah.gif" width="20" align="absmiddle"> 想要加点可爱的动漫表情包，但又不想一个一个手写 HTML 标签？
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomo/tomo_ah.webp" width="20" align="absmiddle"> 想要加点可爱的动漫表情包，但又不想一个一个手写 HTML 标签？
 
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/nijika/nijika_great.png" width="20" align="absmiddle"> **EmoGdream 来拯救你！**
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/nijika/nijika_great.webp" width="20" align="absmiddle"> **EmoGdream 来拯救你！**
 
 ---
 
@@ -24,13 +24,13 @@
 
 | 特性 | 说明 |
 |------|------|
-| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/subaru/subaru_happy.png" width="16" align="absmiddle"> **22 个角色** | BanG Dream 系列 + 更多 |
-| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/momoka/momoka_peek.png" width="16" align="absmiddle"> **497+ 表情** | PNG / GIF / WebP 三种格式 |
-| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/ikuyo/ikuyo_clap.png" width="16" align="absmiddle"> **智能筛选** | 按角色、格式、情绪筛选 |
-| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomori/tomori_yes.png" width="16" align="absmiddle"> **批量操作** | 一键复制/下载多个表情 |
-| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/raana/raana_pet_cat.png" width="16" align="absmiddle"> **GitHub 优化** | 复制直接可用的 HTML |
+| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/subaru/subaru_happy.webp" width="16" align="absmiddle"> **22 个角色** | BanG Dream 系列 + 更多 |
+| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/momoka/momoka_peek.webp" width="16" align="absmiddle"> **497+ 表情** | PNG / GIF / WebP 三种格式 |
+| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/ikuyo/ikuyo_clap.webp" width="16" align="absmiddle"> **智能筛选** | 按角色、格式、情绪筛选 |
+| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomori/tomori_yes.webp" width="16" align="absmiddle"> **批量操作** | 一键复制/下载多个表情 |
+| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/raana/raana_pet_cat.webp" width="16" align="absmiddle"> **GitHub 优化** | 复制直接可用的 HTML |
 | <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nyamu/nyamu_goodbye.webp" width="16" align="absmiddle"> **深色模式** | 自动跟随系统主题 |
-| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/uika/uika_like.png" width="16" align="absmiddle"> **响应式** | 手机端完美适配 |
+| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/uika/uika_like.webp" width="16" align="absmiddle"> **响应式** | 手机端完美适配 |
 
 ---
 
@@ -44,7 +44,7 @@ npm install
 npm run dev
 ```
 
-然后访问 http://localhost:5173/EmoGdream/  开始挑选表情包吧！ <img src="https://ywh555hhh.github.io/EmoGdream/stickers/mutsumi/mutsumi_hug.gif" width="16" align="absmiddle">
+然后访问 http://localhost:5173/EmoGdream/ 开始挑选表情包吧！ <img src="https://ywh555hhh.github.io/EmoGdream/stickers/mutsumi/mutsumi_hug.webp" width="16" align="absmiddle">
 
 ---
 
@@ -52,14 +52,14 @@ npm run dev
 
 ### 在 GitHub README 中使用
 
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/hitori/hitori_let_me_see.png" width="16" align="absmiddle"> 复制表情后，直接粘贴到 README：
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/hitori/hitori_let_me_see.webp" width="16" align="absmiddle"> 复制表情后，直接粘贴到 README：
 
 ```markdown
 # 我的超酷 README
 
-今天心情不错 <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nina/nina_rock.png" width="16" align="absmiddle">
+今天心情不错 <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nina/nina_rock.webp" width="16" align="absmiddle">
 
-但是遇到了 BUG <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomori/tomori_oops.png" width="16" align="absmiddle">
+但是遇到了 BUG <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomori/tomori_oops.webp" width="16" align="absmiddle">
 ```
 
 复制出来的格式是 GitHub 原生支持的，直接就能渲染！
@@ -68,12 +68,12 @@ npm run dev
 
 复制单个表情：
 ```html
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/hitori/hitori_no.png" width="16" align="absmiddle">
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/hitori/hitori_no.webp" width="16" align="absmiddle">
 ```
 
 批量复制多个表情：
 ```html
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/hitori/hitori_no.png" width="16" align="absmiddle"> <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nina/nina_cry.png" width="16" align="absmiddle"> <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomo/tomori_ah.gif" width="16" align="absmiddle">
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/hitori/hitori_no.webp" width="16" align="absmiddle"> <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nina/nina_cry.webp" width="16" align="absmiddle"> <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomo/tomo_ah.webp" width="16" align="absmiddle">
 ```
 
 ---
@@ -82,40 +82,40 @@ npm run dev
 
 | 角色 | 系列 | 数量 |
 |------|--------|------|
-| Nina <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nina/nina_hehe.png" width="16" align="absmiddle"> | Girls Band Party | 31 |
-| Nijika <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nijika/nijika_hehe.png" width="16" align="absmiddle"> | Girls Band Party | 18 |
-| Tomori <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomori/tomori_yes.png" width="16" align="absmiddle"> | Girls Band Party | 22 |
-| Momoka <img src="https://ywh555hhh.github.io/EmoGdream/stickers/momoka/momoka_peek.png" width="16" align="absmiddle"> | Girls Band Party | 31 |
-| Subaru <img src="https://ywh555hhh.github.io/EmoGdream/stickers/subaru/subaru_happy.png" width="16" align="absmiddle"> | Girls Band Party | 30 |
-| Hitori <img src="https://ywh555hhh.github.io/EmoGdream/stickers/hitori/hitori_expect.png" width="16" align="absmiddle"> | Girls Band Party | 32 |
-| Ikuyo <img src="https://ywh555hhh.github.io/EmoGdream/stickers/ikuyo/ikuyo_clap.png" width="16" align="absmiddle"> | Girls Band Party | 18 |
-| Soyo <img src="https://ywh555hhh.github.io/EmoGdream/stickers/soyo/soyo_smile.png" width="16" align="absmiddle"> | Girls Band Party | 23 |
-| Taki <img src="https://ywh555hhh.github.io/EmoGdream/stickers/taki/taki_glare.png" width="16" align="absmiddle"> | Girls Band Party | 21 |
-| Tomo <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomo/tomo_happy.png" width="16" align="absmiddle"> | Girls Band Party | 33 |
-| Rupa <img src="https://ywh555hhh.github.io/EmoGdream/stickers/rupa/rupa_cheer.png" width="16" align="absmiddle"> | Girls Band Party | 35 |
-| Sakiko <img src="https://ywh555hhh.github.io/EmoGdream/stickers/sakiko/sakiko_pleased.png" width="16" align="absmiddle"> | Girls Band Party | 29 |
-| Ryo <img src="https://ywh555hhh.github.io/EmoGdream/stickers/ryo/ryo_hehe.png" width="16" align="absmiddle"> | Girls Band Party | 19 |
-| Uika <img src="https://ywh555hhh.github.io/EmoGdream/stickers/uika/uika_pretty_good.png" width="16" align="absmiddle"> | Girls Band Party | 30 |
-| Nyamu <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nyamu/nyamu_good_evening_meow.png" width="16" align="absmiddle"> | Girls Band Party | 30 |
-| Mutsumi <img src="https://ywh555hhh.github.io/EmoGdream/stickers/mutsumi/mutsumi_happy.png" width="16" align="absmiddle"> | Girls Band Party | 31 |
-| Raana <img src="https://ywh555hhh.github.io/EmoGdream/stickers/raana/raana_pet_cat.png" width="16" align="absmiddle"> | Girls Band Party | 23 |
-| Umiri <img src="https://ywh555hhh.github.io/EmoGdream/stickers/umiri/umiri_good_job.png" width="16" align="absmiddle"> | Girls Band Party | 30 |
-| Anon <img src="https://ywh555hhh.github.io/EmoGdream/stickers/anon/anon_hah.png" width="16" align="absmiddle"> | It's MyGO!!!!! | 19 |
-| KB <img src="https://ywh555hhh.github.io/EmoGdream/stickers/kb/kb_pat_head.png" width="16" align="absmiddle"> | Solo Leveling | 8 |
-| Mana <img src="https://ywh555hhh.github.io/EmoGdream/stickers/mana/mana_stretch.png" width="16" align="absmiddle"> | - | 5 |
-| GBC <img src="https://ywh555hhh.github.io/EmoGdream/stickers/gbc/gbc_embrace.png" width="16" align="absmiddle"> | - | 10 |
+| Nina <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nina/nina_hehe.webp" width="16" align="absmiddle"> | Girls Band Party | 29 |
+| Nijika <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nijika/nijika_hehe.webp" width="16" align="absmiddle"> | Girls Band Party | 17 |
+| Tomori <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomori/tomori_yes.webp" width="16" align="absmiddle"> | Girls Band Party | 20 |
+| Momoka <img src="https://ywh555hhh.github.io/EmoGdream/stickers/momoka/momoka_peek.webp" width="16" align="absmiddle"> | Girls Band Party | 29 |
+| Subaru <img src="https://ywh555hhh.github.io/EmoGdream/stickers/subaru/subaru_happy.webp" width="16" align="absmiddle"> | Girls Band Party | 28 |
+| Hitori <img src="https://ywh555hhh.github.io/EmoGdream/stickers/hitori/hitori_expect.webp" width="16" align="absmiddle"> | Girls Band Party | 30 |
+| Ikuyo <img src="https://ywh555hhh.github.io/EmoGdream/stickers/ikuyo/ikuyo_clap.webp" width="16" align="absmiddle"> | Girls Band Party | 16 |
+| Soyo <img src="https://ywh555hhh.github.io/EmoGdream/stickers/soyo/soyo_smile.webp" width="16" align="absmiddle"> | Girls Band Party | 20 |
+| Taki <img src="https://ywh555hhh.github.io/EmoGdream/stickers/taki/taki_glare.webp" width="16" align="absmiddle"> | Girls Band Party | 19 |
+| Tomo <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomo/tomo_happy.webp" width="16" align="absmiddle"> | Girls Band Party | 30 |
+| Rupa <img src="https://ywh555hhh.github.io/EmoGdream/stickers/rupa/rupa_cheer.webp" width="16" align="absmiddle"> | Girls Band Party | 32 |
+| Sakiko <img src="https://ywh555hhh.github.io/EmoGdream/stickers/sakiko/sakiko_pleased.webp" width="16" align="absmiddle"> | Girls Band Party | 27 |
+| Ryo <img src="https://ywh555hhh.github.io/EmoGdream/stickers/ryo/ryo_hehe.webp" width="16" align="absmiddle"> | Girls Band Party | 17 |
+| Uika <img src="https://ywh555hhh.github.io/EmoGdream/stickers/uika/uika_pretty_good.webp" width="16" align="absmiddle"> | Girls Band Party | 27 |
+| Nyamu <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nyamu/nyamu_good_evening_meow.webp" width="16" align="absmiddle"> | Girls Band Party | 28 |
+| Mutsumi <img src="https://ywh555hhh.github.io/EmoGdream/stickers/mutsumi/mutsumi_happy.webp" width="16" align="absmiddle"> | Girls Band Party | 29 |
+| Raana <img src="https://ywh555hhh.github.io/EmoGdream/stickers/raana/raana_pet_cat.webp" width="16" align="absmiddle"> | Girls Band Party | 21 |
+| Umiri <img src="https://ywh555hhh.github.io/EmoGdream/stickers/umiri/umiri_good_job.webp" width="16" align="absmiddle"> | Girls Band Party | 29 |
+| Anon <img src="https://ywh555hhh.github.io/EmoGdream/stickers/anon/anon_hah.webp" width="16" align="absmiddle"> | It's MyGO!!!!! | 19 |
+| KB <img src="https://ywh555hhh.github.io/EmoGdream/stickers/kb/kb_pat_head.webp" width="16" align="absmiddle"> | Solo Leveling | 8 |
+| Mana <img src="https://ywh555hhh.github.io/EmoGdream/stickers/mana/mana_stretch.webp" width="16" align="absmiddle"> | - | 3 |
+| GBC <img src="https://ywh555hhh.github.io/EmoGdream/stickers/gbc/gbc_embrace.webp" width="16" align="absmiddle"> | - | 8 |
 
-**总计：497 个表情** <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nina/nina_evil_smile.png" width="16" align="absmiddle">
+**总计：486 个表情** <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nina/nina_evil_smile.webp" width="16" align="absmiddle">
 
 ---
 
 ## 🛠️ 技术栈
 
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/sakiko/sakiko_applaud.png" width="16" align="absmiddle"> **Vue 3.5** - Composition API
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/ikuyo/ikuyo_wow.png" width="16" align="absmiddle"> **TypeScript** - 类型安全
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/ryo/ryo_like.png" width="16" align="absmiddle"> **Vite 7** - 超快构建
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/rupa/rupa_wiggle.png" width="16" align="absmiddle"> **Vue Router** - 路由管理
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/umiri/umiri_buy_all_at_once.png" width="16" align="absmiddle"> **Pinia** - 状态管理
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/sakiko/sakiko_applaud.webp" width="16" align="absmiddle"> **Vue 3.5** - Composition API
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/ikuyo/ikuyo_wow.webp" width="16" align="absmiddle"> **TypeScript** - 类型安全
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/ryo/ryo_like.webp" width="16" align="absmiddle"> **Vite 7** - 超快构建
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/rupa/rupa_wiggle.webp" width="16" align="absmiddle"> **Vue Router** - 路由管理
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/umiri/umiri_buy_all_at_once.webp" width="16" align="absmiddle"> **Pinia** - 状态管理
 
 ---
 
@@ -170,14 +170,14 @@ MIT License - 想用就用，想怎么改都可以！
 
 ## 🙏 致谢
 
-感谢所有 BanG Dream 系列的原作者，这些可爱的角色给了我们这么多快乐！ <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nijika/nijika_great.png" width="20" align="absmiddle">
+感谢所有 BanG Dream 系列的原作者，这些可爱的角色给了我们这么多快乐！ <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nijika/nijika_great.webp" width="20" align="absmiddle">
 
 ---
 
 <div align="center">
 
-Made with <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nyamu/nyamu_heart.png" width="16" align="absmiddle"> by [Claude](https://claude.ai)
+Made with <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nyamu/nyamu_heart.webp" width="16" align="absmiddle"> by [Claude](https://claude.ai)
 
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/mutsumi/mutsumi_act_cute.png" width="20" align="absmiddle">
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/mutsumi/mutsumi_act_cute.webp" width="20" align="absmiddle">
 
 </div>

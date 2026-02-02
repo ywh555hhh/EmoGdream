@@ -1,5 +1,12 @@
 import { ref } from 'vue'
 
+// Use Vite's BASE_URL to handle both dev and production paths
+const getFullPath = (path: string): string => {
+  const basePath = import.meta.env.BASE_URL || '/'
+  const cleanBase = basePath.replace(/\/$/, '')
+  return `${cleanBase}${path}`
+}
+
 export function useDownload() {
   const toast = ref<{ show: boolean; message: string; type: 'success' | 'error' }>({
     show: false,
@@ -15,7 +22,7 @@ export function useDownload() {
   const downloadEmoji = async (emoji: { path: string; name: string }): Promise<void> => {
     try {
       const link = document.createElement('a')
-      link.href = emoji.path
+      link.href = getFullPath(emoji.path)
       link.download = emoji.name
       document.body.appendChild(link)
       link.click()
