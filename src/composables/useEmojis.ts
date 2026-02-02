@@ -62,7 +62,7 @@ export function useEmojis() {
           emotion,
           format: ext,
           character,
-          path: path.replace('/stickers', '/stickers')
+          path: path // Keep the path as-is (starts with /stickers/)
         })
       }
     } catch (e) {
