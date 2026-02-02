@@ -13,6 +13,9 @@ const { selectedCount, toggleSelection, selectAll, selectNone, isSelected, allSe
 const { toast: copyToast, copyEmoji, copyMultiple } = useClipboard()
 const { toast: downloadToast, downloadEmoji, downloadMultiple } = useDownload()
 
+// Preview size is fixed at 64px for better visibility
+const previewSize = 64
+
 const selectedCharacter = ref<string>('all')
 const selectedFormat = ref<'all' | 'png' | 'gif' | 'webp'>('all')
 const selectedEmotion = ref<string>('all')
@@ -124,7 +127,7 @@ const hasActiveFilters = computed(() => {
 
       <div class="filter-row">
         <div class="size-selector">
-          <span class="size-label">Size:</span>
+          <span class="size-label">Copy size:</span>
           <div class="size-buttons">
             <button
               v-for="s in sizes"
@@ -208,7 +211,7 @@ const hasActiveFilters = computed(() => {
         :key="emoji.id"
         :emoji="emoji"
         :selected="isSelected(emoji.id)"
-        :size="size"
+        :size="previewSize"
         @toggle="toggleSelection(emoji.id)"
         @copy="handleCopy(emoji)"
         @download="handleDownload(emoji)"

@@ -25,7 +25,7 @@
 | 特性 | 说明 |
 |------|------|
 | <img src="https://ywh555hhh.github.io/EmoGdream/stickers/subaru/subaru_happy.webp" width="16" align="absmiddle"> **22 个角色** | BanG Dream 系列 + 更多 |
-| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/momoka/momoka_peek.webp" width="16" align="absmiddle"> **497+ 表情** | PNG / GIF / WebP 三种格式 |
+| <img src="https://ywh555hhh.github.io/EmoGdream/stickers/momoka/momoka_peek.webp" width="16" align="absmiddle"> **486 个表情** | PNG / GIF / WebP 三种格式 |
 | <img src="https://ywh555hhh.github.io/EmoGdream/stickers/ikuyo/ikuyo_clap.webp" width="16" align="absmiddle"> **智能筛选** | 按角色、格式、情绪筛选 |
 | <img src="https://ywh555hhh.github.io/EmoGdream/stickers/tomori/tomori_yes.webp" width="16" align="absmiddle"> **批量操作** | 一键复制/下载多个表情 |
 | <img src="https://ywh555hhh.github.io/EmoGdream/stickers/raana/raana_pet_cat.webp" width="16" align="absmiddle"> **GitHub 优化** | 复制直接可用的 HTML |
