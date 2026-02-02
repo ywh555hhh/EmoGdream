@@ -1,29 +1,45 @@
 import { ref, computed } from 'vue'
 
+const SIZES: readonly [number, number, number, number, number] = [32, 48, 64, 96, 128]
+
 export function useSizeControl() {
-  const size = ref<number>(64)
+  const sizeIndex = ref<number>(2)
 
-  const htmlTag = computed(() => {
-    return `<img width="${size.value}" height="${size.value}" />`
-  })
+  const size = computed((): number => SIZES[sizeIndex.value]!)
 
-  const sizeValue = computed(() => {
-    return `${size.value}px`
-  })
+  const sizeValue = computed(() => `${size.value}px`)
 
-  const updateSize = (newSize: number) => {
-    size.value = Math.max(16, Math.min(128, newSize))
+  const setSize = (value: number) => {
+    const idx = SIZES.indexOf(value)
+    if (idx !== -1) {
+      sizeIndex.value = idx
+    }
   }
 
-  const resetSize = () => {
-    size.value = 64
+  const setSizeIndex = (idx: number) => {
+    sizeIndex.value = Math.max(0, Math.min(SIZES.length - 1, idx))
+  }
+
+  const increaseSize = () => {
+    if (sizeIndex.value < SIZES.length - 1) {
+      sizeIndex.value++
+    }
+  }
+
+  const decreaseSize = () => {
+    if (sizeIndex.value > 0) {
+      sizeIndex.value--
+    }
   }
 
   return {
     size,
-    htmlTag,
     sizeValue,
-    updateSize,
-    resetSize
+    sizes: SIZES,
+    sizeIndex,
+    setSize,
+    setSizeIndex,
+    increaseSize,
+    decreaseSize
   }
 }

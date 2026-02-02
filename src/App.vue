@@ -1,470 +1,423 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useEmojis, type Emoji } from './composables/useEmojis'
 import { useSizeControl } from './composables/useSizeControl'
 import { useBatchSelection } from './composables/useBatchSelection'
+import { useClipboard } from './composables/useClipboard'
+import { useDownload } from './composables/useDownload'
 import EmojiCard from './components/EmojiCard.vue'
 
-const { emojis, uniqueEmotions, totalCount } = useEmojis()
-const { size, sizeValue, updateSize } = useSizeControl()
-const { 
-  selectedCount, 
-  toggleSelection, 
-  selectAll, 
-  selectNone, 
-  isSelected, 
-  allSelected, 
-  batchCopy 
-} = useBatchSelection()
+const { emojis, characters, emotions, totalCount, loading } = useEmojis()
+const { size, sizes, setSize } = useSizeControl()
+const { selectedCount, toggleSelection, selectAll, selectNone, isSelected, allSelected, getSelectedEmojis } = useBatchSelection()
+const { toast: copyToast, copyEmoji, copyMultiple } = useClipboard()
+const { toast: downloadToast, downloadEmoji, downloadMultiple } = useDownload()
 
-const formatFilter = ref<'all' | 'png' | 'gif' | 'webp'>('all')
-const emotionFilter = ref<string>('all')
+const selectedCharacter = ref<string>('all')
+const selectedFormat = ref<'all' | 'png' | 'gif' | 'webp'>('all')
+const selectedEmotion = ref<string>('all')
+const searchQuery = ref<string>('')
 
 const filteredEmojis = computed(() => {
   return emojis.value.filter(emoji => {
-    const formatMatch = formatFilter.value === 'all' || emoji.format === formatFilter.value
-    const emotionMatch = emotionFilter.value === 'all' || emoji.emotion === emotionFilter.value
-    return formatMatch && emotionMatch
+    const charMatch = selectedCharacter.value === 'all' || emoji.character === selectedCharacter.value
+    const formatMatch = selectedFormat.value === 'all' || emoji.format === selectedFormat.value
+    const emotionMatch = selectedEmotion.value === 'all' || emoji.emotion === selectedEmotion.value
+    const searchMatch = !searchQuery.value ||
+      emoji.emotion.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      emoji.character.toLowerCase().includes(searchQuery.value.toLowerCase())
+    return charMatch && formatMatch && emotionMatch && searchMatch
   })
 })
 
+const availableEmotions = computed(() => {
+  const set = new Set(filteredEmojis.value.map(e => e.emotion))
+  return Array.from(set).sort()
+})
+
+const filteredCount = computed(() => filteredEmojis.value.length)
+
+const resetFilters = () => {
+  selectedCharacter.value = 'all'
+  selectedFormat.value = 'all'
+  selectedEmotion.value = 'all'
+  searchQuery.value = ''
+}
+
+const handleCopy = async (emoji: Emoji) => {
+  await copyEmoji(emoji, { width: size.value, height: size.value })
+}
+
 const handleBatchCopy = async () => {
-  const result = await batchCopy(filteredEmojis.value, { width: size, height: size })
-  if (result.success) {
-    console.log('✅', result.message)
-  } else {
-    console.error('❌', result.message)
-  }
-}
-
-const handleSelectAll = () => {
-  selectAll(filteredEmojis.value)
-}
-
-const handleSelectNone = () => {
+  const selected = getSelectedEmojis(filteredEmojis.value)
+  await copyMultiple(selected, { width: size.value, height: size.value })
   selectNone()
 }
 
-const formatOptions = [
-  { value: 'all', label: 'All' },
-  { value: 'png', label: 'PNG' },
-  { value: 'gif', label: 'GIF' },
-  { value: 'webp', label: 'WebP' }
-] as const
-
-const setFormatFilter = (format: 'all' | 'png' | 'gif' | 'webp') => {
-  formatFilter.value = format
+const handleDownload = async (emoji: Emoji) => {
+  await downloadEmoji(emoji)
 }
 
-const setEmotionFilter = (emotion: string) => {
-  emotionFilter.value = emotion
+const handleBatchDownload = async () => {
+  const selected = getSelectedEmojis(filteredEmojis.value)
+  await downloadMultiple(selected)
+  selectNone()
 }
 
-const resetFilters = () => {
-  formatFilter.value = 'all'
-  emotionFilter.value = 'all'
-}
-
-const handleCopy = (emoji: Emoji) => {
-  console.log('Copy emoji:', emoji.name)
-}
-
-const handleDownload = (emoji: Emoji) => {
-  console.log('Download emoji:', emoji.name)
-}
+const hasActiveFilters = computed(() => {
+  return selectedCharacter.value !== 'all' ||
+    selectedFormat.value !== 'all' ||
+    selectedEmotion.value !== 'all' ||
+    searchQuery.value !== ''
+})
 </script>
 
 <template>
-  <div class="app-container">
-    <header class="app-header">
-      <h1 class="app-title">
-        <span class="title-icon">✨</span>
-        Emoji Library
-      </h1>
-      <p class="app-subtitle">{{ totalCount }} anime-style emojis for your GitHub projects</p>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1 class="title">EmoGdream</h1>
+        <p class="subtitle">{{ totalCount }} anime stickers</p>
+      </div>
     </header>
 
-    <section class="filters-section">
+    <!-- Filters -->
+    <section class="filters">
       <div class="filter-group">
-        <label class="filter-label">Format</label>
-        <div class="filter-buttons">
-          <button
-            v-for="option in formatOptions"
-            :key="option.value"
-            :class="['filter-btn', { active: formatFilter === option.value }]"
-            @click="setFormatFilter(option.value)"
-          >
-            {{ option.label }}
-          </button>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search stickers..."
+          class="search-input"
+        />
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-select">
+          <select v-model="selectedCharacter">
+            <option value="all">All Characters</option>
+            <option v-for="char in characters" :key="char.id" :value="char.id">
+              {{ char.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-select">
+          <select v-model="selectedFormat" @change="selectedEmotion = 'all'">
+            <option value="all">All Formats</option>
+            <option value="png">PNG</option>
+            <option value="gif">GIF</option>
+            <option value="webp">WebP</option>
+          </select>
+        </div>
+
+        <div class="filter-select">
+          <select v-model="selectedEmotion" :disabled="availableEmotions.length === 0">
+            <option value="all">All Emotions</option>
+            <option v-for="emo in availableEmotions" :key="emo" :value="emo">
+              {{ emo }}
+            </option>
+          </select>
         </div>
       </div>
 
-      <div class="filter-group">
-        <label class="filter-label">Emotion</label>
-        <div class="filter-buttons">
-          <button
-            :class="['filter-btn', { active: emotionFilter === 'all' }]"
-            @click="setEmotionFilter('all')"
-          >
-            All
-          </button>
-          <button
-            v-for="emotion in uniqueEmotions"
-            :key="emotion"
-            :class="['filter-btn', { active: emotionFilter === emotion }]"
-            @click="setEmotionFilter(emotion)"
-          >
-            {{ emotion }}
-          </button>
-        </div>
-      </div>
-
-      <div class="filter-group">
-        <label class="filter-label">Size: {{ sizeValue }}</label>
-        <div class="size-slider-container">
-          <input
-            type="range"
-            :value="size"
-            @input="updateSize(parseInt(($event.target as HTMLInputElement).value))"
-            min="16"
-            max="128"
-            step="1"
-            class="size-slider"
-          />
-          <div class="size-slider-labels">
-            <span>16px</span>
-            <span>128px</span>
+      <div class="filter-row">
+        <div class="size-selector">
+          <span class="size-label">Size:</span>
+          <div class="size-buttons">
+            <button
+              v-for="s in sizes"
+              :key="s"
+              :class="{ active: size === s }"
+              @click="setSize(s)"
+            >
+              {{ s }}
+            </button>
           </div>
         </div>
-      </div>
-    </section>
 
-    <main class="emoji-grid-section">
-      <div class="results-info">
-        <span class="results-count">{{ filteredEmojis.length }}</span>
-        <span class="results-text">emojis found</span>
         <button
-          v-if="formatFilter !== 'all' || emotionFilter !== 'all'"
-          class="reset-btn"
+          v-if="hasActiveFilters"
           @click="resetFilters"
+          class="reset-btn"
         >
           Clear filters
         </button>
       </div>
 
-      <div v-if="filteredEmojis.length > 0" class="batch-controls">
-        <div class="batch-info">
-          <span class="selected-count">{{ selectedCount }} selected</span>
-        </div>
+      <!-- Batch actions -->
+      <div v-if="filteredEmojis.length > 0" class="batch-actions">
+        <span class="selected-count">{{ selectedCount }} selected</span>
         <div class="batch-buttons">
           <button
-            @click="handleSelectAll"
+            @click="selectAll(filteredEmojis)"
             :disabled="allSelected(filteredEmojis)"
             class="batch-btn"
-            :class="{ active: allSelected(filteredEmojis) }"
           >
-            Select All
+            All
           </button>
           <button
-            @click="handleSelectNone"
+            @click="selectNone"
             :disabled="selectedCount === 0"
             class="batch-btn"
           >
-            Select None
+            None
           </button>
           <button
             @click="handleBatchCopy"
             :disabled="selectedCount === 0"
-            class="batch-btn batch-copy-btn"
-            :class="{ active: selectedCount > 0 }"
+            class="batch-btn primary"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            Copy Selected ({{ selectedCount }})
+            Copy {{ selectedCount }}
+          </button>
+          <button
+            @click="handleBatchDownload"
+            :disabled="selectedCount === 0"
+            class="batch-btn primary"
+          >
+            Download {{ selectedCount }}
           </button>
         </div>
       </div>
+    </section>
 
-      <div class="emoji-grid">
-        <EmojiCard
-          v-for="emoji in filteredEmojis"
-          :key="emoji.id"
-          :emoji="emoji"
-          :selected="isSelected(emoji.id)"
-          :size="size"
-          @update:selected="(selected: boolean) => toggleSelection(emoji.id, selected)"
-          @copy="handleCopy(emoji)"
-          @download="handleDownload(emoji)"
-        />
-      </div>
+    <!-- Results info -->
+    <div class="results-info">
+      <span class="count">{{ filteredCount }}</span>
+      <span>stickers found</span>
+    </div>
 
-      <div v-if="filteredEmojis.length === 0" class="empty-state">
-        <div class="empty-icon">🔍</div>
-        <p class="empty-text">No emojis found with current filters</p>
-        <button class="reset-btn reset-btn-large" @click="resetFilters">
-          Clear all filters
-        </button>
+    <!-- Loading state -->
+    <div v-if="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Loading stickers...</p>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="filteredEmojis.length === 0" class="empty">
+      <span class="empty-icon">🔍</span>
+      <p>No stickers found</p>
+      <button v-if="hasActiveFilters" @click="resetFilters" class="btn">Clear filters</button>
+    </div>
+
+    <!-- Emoji grid -->
+    <div v-else class="grid">
+      <EmojiCard
+        v-for="emoji in filteredEmojis"
+        :key="emoji.id"
+        :emoji="emoji"
+        :selected="isSelected(emoji.id)"
+        :size="size"
+        @toggle="toggleSelection(emoji.id)"
+        @copy="handleCopy(emoji)"
+        @download="handleDownload(emoji)"
+      />
+    </div>
+
+    <!-- Toast notification -->
+    <Transition name="toast">
+      <div
+        v-if="copyToast.show || downloadToast.show"
+        class="toast"
+        :class="{ error: (copyToast.show && copyToast.type === 'error') || (downloadToast.show && downloadToast.type === 'error') }"
+      >
+        {{ copyToast.show ? copyToast.message : downloadToast.message }}
       </div>
-    </main>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
-.app-container {
+.app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  padding: 2rem 1rem;
+  background: #f5f5f7;
+  padding: 20px;
 }
 
-.app-header {
+.header {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.header-content {
   text-align: center;
-  margin-bottom: 3rem;
-  padding: 2rem 0;
 }
 
-.app-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin: 0 0 1rem 0;
-  color: #1a1a2e;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.title-icon {
-  font-size: 1.2em;
-  animation: sparkle 2s ease-in-out infinite;
-}
-
-@keyframes sparkle {
-  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
-  50% { transform: scale(1.1) rotate(10deg); opacity: 0.8; }
-}
-
-.app-subtitle {
-  font-size: 1.1rem;
-  color: #6c757d;
+.subtitle {
+  font-size: 14px;
+  color: #86868b;
   margin: 0;
-  font-weight: 400;
 }
 
-.filters-section {
-  max-width: 1200px;
-  margin: 0 auto 2rem;
-  background: #ffffff;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+.filters {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .filter-group {
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
 
-.filter-group:last-child {
-  margin-bottom: 0;
-}
-
-.size-slider-container {
-  width: 100%;
-}
-
-.size-slider {
-  width: 100%;
-  height: 6px;
-  background: #e9ecef;
-  border-radius: 3px;
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-}
-
-.size-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-  transition: all 0.2s ease;
-}
-
-.size-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.size-slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-  transition: all 0.2s ease;
-  border: none;
-}
-
-.size-slider::-moz-range-thumb:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.size-slider-labels {
+.filter-row {
   display: flex;
-  justify-content: space-between;
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: #6c757d;
-}
-
-.filter-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.filter-buttons {
-  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
-.filter-btn {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #6c757d;
-  background: #f8f9fa;
-  border: 2px solid transparent;
-  border-radius: 8px;
+.search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e5ea;
+  border-radius: 10px;
+  font-size: 15px;
+  background: #f5f5f7;
+  transition: all 0.15s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #007aff;
+  background: white;
+}
+
+.filter-select {
+  flex: 1;
+  min-width: 140px;
+}
+
+.filter-select select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e5ea;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #f5f5f7;
   cursor: pointer;
-  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
 }
 
-.filter-btn:hover {
-  background: #e9ecef;
-  color: #495057;
+.filter-select select:focus {
+  outline: none;
+  border-color: #007aff;
+  background-color: white;
 }
 
-.filter-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+.filter-select select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.emoji-grid-section {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.results-info {
+.size-selector {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #ffffff;
+  gap: 12px;
+}
+
+.size-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1f;
+  white-space: nowrap;
+}
+
+.size-buttons {
+  display: flex;
+  gap: 4px;
+  background: #f5f5f7;
+  padding: 4px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.results-count {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #667eea;
+.size-buttons button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: #86868b;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.results-text {
-  font-size: 0.9rem;
-  color: #6c757d;
+.size-buttons button.active {
+  background: white;
+  color: #007aff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .reset-btn {
   margin-left: auto;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  padding: 10px 16px;
+  border: 1px solid #e5e5ea;
+  border-radius: 10px;
+  background: white;
+  font-size: 14px;
   font-weight: 500;
-  color: #6c757d;
-  background: transparent;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
+  color: #007aff;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .reset-btn:hover {
-  color: #495057;
-  background: #f8f9fa;
-  border-color: #adb5bd;
+  background: #f5f5f7;
 }
 
-.reset-btn-large {
-  margin-left: 0;
-  margin-top: 1rem;
-}
-
-.batch-controls {
+.batch-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.batch-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  padding-top: 16px;
+  border-top: 1px solid #e5e5ea;
 }
 
 .selected-count {
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 600;
-  color: #667eea;
+  color: #007aff;
 }
 
 .batch-buttons {
   display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .batch-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  font-size: 0.875rem;
+  padding: 8px 14px;
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
   font-weight: 500;
-  color: #6c757d;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
+  color: #1d1d1f;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .batch-btn:hover:not(:disabled) {
-  background: #e9ecef;
-  border-color: #adb5bd;
-  color: #495057;
+  background: #f5f5f7;
 }
 
 .batch-btn:disabled {
@@ -472,195 +425,244 @@ const handleDownload = (emoji: Emoji) => {
   cursor: not-allowed;
 }
 
-.batch-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+.batch-btn.primary {
+  background: #007aff;
+  border-color: #007aff;
+  color: white;
 }
 
-.batch-copy-btn.active {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+.batch-btn.primary:hover:not(:disabled) {
+  background: #0066d6;
 }
 
-.emoji-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1.5rem;
-}
-
-.emoji-placeholder {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.emoji-placeholder:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
-}
-
-.emoji-image {
-  width: 100%;
-  height: 100px;
-  object-fit: contain;
-  margin-bottom: 1rem;
-  image-rendering: pixelated;
-}
-
-.emoji-info {
+.results-info {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 16px;
+  color: #86868b;
+  font-size: 14px;
 }
 
-.emoji-emotion {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #1a1a2e;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-}
-
-.emoji-format {
-  font-size: 0.7rem;
+.results-info .count {
+  font-size: 24px;
   font-weight: 700;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  text-transform: uppercase;
+  color: #1d1d1f;
 }
 
-.format-png {
-  background: #e7f3ff;
-  color: #0066cc;
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #86868b;
 }
 
-.format-gif {
-  background: #fff3e0;
-  color: #e65100;
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e5ea;
+  border-top-color: #007aff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
 }
 
-.format-webp {
-  background: #f3e5f5;
-  color: #7b1fa2;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #86868b;
 }
 
 .empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  font-size: 48px;
+  margin-bottom: 12px;
 }
 
-.empty-text {
-  font-size: 1.1rem;
-  color: #6c757d;
-  margin: 0 0 1.5rem 0;
+.empty p {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: 1px solid #e5e5ea;
+  border-radius: 10px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: #007aff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn:hover {
+  background: #f5f5f7;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: #34c759;
+  color: white;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+.toast.error {
+  background: #ff3b30;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.2s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
 }
 
 @media (max-width: 768px) {
-  .app-container {
-    padding: 1rem 0.5rem;
+  .app {
+    padding: 12px;
   }
 
-  .app-header {
-    padding: 1.5rem 0;
-    margin-bottom: 2rem;
+  .header {
+    padding: 20px 16px;
   }
 
-  .app-title {
-    font-size: 2rem;
+  .title {
+    font-size: 24px;
   }
 
-  .app-subtitle {
-    font-size: 1rem;
+  .filters {
+    padding: 16px;
   }
 
-  .filters-section {
-    padding: 1rem;
-    border-radius: 8px;
+  .filter-row {
+    flex-direction: column;
   }
 
-  .filter-buttons {
-    gap: 0.375rem;
+  .size-selector {
+    flex-wrap: wrap;
   }
 
-  .filter-btn {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.8rem;
-  }
-
-  .batch-controls {
+  .batch-actions {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.75rem;
-  }
-
-  .batch-info {
-    justify-content: center;
+    gap: 12px;
   }
 
   .batch-buttons {
-    justify-content: center;
+    flex-wrap: wrap;
   }
 
   .batch-btn {
-    font-size: 0.8rem;
-    padding: 0.5rem 0.75rem;
+    flex: 1;
+    min-width: 80px;
   }
 
-  .emoji-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 1rem;
-  }
-
-  .emoji-placeholder {
-    padding: 1rem;
-  }
-
-  .emoji-image {
-    height: 80px;
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
   }
 }
 
-@media (max-width: 480px) {
-  .emoji-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.75rem;
+@media (prefers-color-scheme: dark) {
+  .app {
+    background: #000;
   }
 
+  .header,
+  .filters {
+    background: #1c1c1e;
+  }
+
+  .title {
+    background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle,
+  .loading p,
+  .empty p,
   .results-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+    color: #86868b;
   }
 
-  .reset-btn {
-    margin-left: 0;
-    width: 100%;
+  .search-input,
+  .filter-select select,
+  .reset-btn,
+  .batch-btn,
+  .btn {
+    background: #2c2c2e;
+    border-color: #3a3a3c;
+    color: #f5f5f7;
   }
 
-  .batch-buttons {
-    flex-direction: column;
+  .search-input:focus,
+  .filter-select select:focus {
+    background: #3a3a3c;
+    border-color: #0a84ff;
   }
 
-  .batch-btn {
-    width: 100%;
-    justify-content: center;
+  .size-label,
+  .results-info .count {
+    color: #f5f5f7;
+  }
+
+  .size-buttons {
+    background: #2c2c2e;
+  }
+
+  .size-buttons button {
+    color: #86868b;
+  }
+
+  .size-buttons button.active {
+    background: #3a3a3c;
+    color: #0a84ff;
+  }
+
+  .batch-btn.primary {
+    background: #0a84ff;
+    border-color: #0a84ff;
+  }
+
+  .batch-btn.primary:hover:not(:disabled) {
+    background: #0066d6;
+  }
+
+  .batch-actions {
+    border-top-color: #3a3a3c;
+  }
+
+  .selected-count {
+    color: #0a84ff;
   }
 }
 </style>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useDownload } from '../composables/useDownload'
-import { useClipboard } from '../composables/useClipboard'
+import { ref } from 'vue'
 import type { Emoji } from '../composables/useEmojis'
 
 const props = withDefaults(defineProps<{
@@ -12,326 +11,222 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  (e: 'update:selected', value: boolean): void
+  (e: 'toggle'): void
   (e: 'copy'): void
   (e: 'download'): void
 }>()
 
-const { downloadEmoji } = useDownload()
-const { copyHtmlTag, isCopying } = useClipboard()
-
-const handleDownload = async () => {
-  try {
-    await downloadEmoji(props.emoji)
-    emit('download')
-  } catch (error) {
-    console.error('Download failed:', error)
-  }
-}
-
-const handleCopy = async () => {
-  emit('copy')
-  await copyHtmlTag(props.emoji, { width: props.size, height: props.size })
-}
+const imageLoaded = ref(false)
+const imageError = ref(false)
 </script>
 
 <template>
-  <div class="emoji-card">
-    <!-- Checkbox for batch selection -->
-    <div class="checkbox-wrapper">
-      <input
-        type="checkbox"
-        :checked="selected"
-        @change="$emit('update:selected', ($event.target as HTMLInputElement).checked)"
-        :id="`checkbox-${emoji.id}`"
-        class="emoji-checkbox"
-      />
-      <label :for="`checkbox-${emoji.id}`" class="checkbox-label">Select</label>
-    </div>
+  <div class="card" :class="{ selected }">
+    <button
+      class="select-btn"
+      :class="{ selected }"
+      @click.stop="emit('toggle')"
+      :aria-label="selected ? 'Deselect' : 'Select'"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    </button>
 
-    <!-- Emoji image -->
-    <div class="emoji-image-wrapper">
+    <div class="image-container">
       <img
+        v-if="!imageError"
         :src="emoji.path"
-        :alt="emoji.name"
-        class="emoji-image"
+        :alt="emoji.emotion"
         :style="{ width: `${size}px`, height: `${size}px` }"
+        @load="imageLoaded = true"
+        @error="imageError = true"
         loading="lazy"
       />
+      <span v-else class="error-icon">✕</span>
     </div>
 
-    <!-- Emoji information -->
-    <div class="emoji-info">
-      <h3 class="emoji-name">{{ emoji.name }}</h3>
-      <p class="emoji-emotion">{{ emoji.emotion }}</p>
-      <span class="emoji-format" :class="`format-${emoji.format}`">{{ emoji.format.toUpperCase() }}</span>
+    <div class="info">
+      <span class="format" :class="emoji.format">{{ emoji.format }}</span>
+      <span class="emotion">{{ emoji.emotion }}</span>
     </div>
 
-    <!-- Size preview -->
-    <div class="size-preview">
-      <span class="preview-label">Size Preview</span>
-      <div class="preview-placeholder">
-        <span>{{ size }}px</span>
-      </div>
-    </div>
-
-    <!-- Action buttons -->
-    <div class="action-buttons">
-      <button @click="handleCopy" class="btn btn-copy" :disabled="isCopying" aria-label="Copy HTML tag">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    <div class="actions">
+      <button class="action-btn" @click="emit('copy')" title="Copy HTML">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
         </svg>
-        {{ isCopying ? 'Copying...' : 'Copy' }}
       </button>
-      <button @click="handleDownload" class="btn btn-download" aria-label="Download image">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="7 10 12 15 17 10"></polyline>
-          <line x1="12" y1="15" x2="12" y2="3"></line>
+      <button class="action-btn" @click="emit('download')" title="Download">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
-        Download
       </button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.emoji-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
-  background-color: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+.card {
   position: relative;
+  border-radius: 12px;
+  background: #f5f5f7;
+  border: 2px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
 }
 
-.emoji-card:hover {
+.card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: var(--color-border-hover);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Checkbox styling */
-.checkbox-wrapper {
+.card.selected {
+  border-color: #007aff;
+  background: #e8f2ff;
+}
+
+.select-btn {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid #d1d1d6;
+  background: white;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.emoji-checkbox {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: hsla(160, 100%, 37%, 1);
-}
-
-.checkbox-label {
-  font-size: 0.8125rem;
-  color: var(--color-text);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  cursor: pointer;
-  user-select: none;
-}
-
-.emoji-card:hover .checkbox-label {
-  opacity: 1;
-}
-
-/* Emoji image */
-.emoji-image-wrapper {
-  display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 120px;
-  background-color: var(--color-background);
-  border-radius: 8px;
-  padding: 1rem;
+  color: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 1;
 }
 
-.emoji-image {
-  object-fit: contain;
-  image-rendering: pixelated;
+.select-btn:hover {
+  border-color: #007aff;
 }
 
-/* Emoji information */
-.emoji-info {
+.select-btn.selected {
+  background: #007aff;
+  border-color: #007aff;
+  color: white;
+}
+
+.image-container {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  min-height: 80px;
 }
 
-.emoji-name {
-  font-size: 1rem;
+.image-container img {
+  border-radius: 8px;
+}
+
+.error-icon {
+  font-size: 24px;
+  color: #86868b;
+}
+
+.info {
+  padding: 8px 12px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.format {
+  font-size: 10px;
   font-weight: 600;
-  color: var(--color-heading);
-  margin: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.format.png { background: #e0f2fe; color: #0284c7; }
+.format.gif { background: #fef3c7; color: #d97706; }
+.format.webp { background: #fce7f3; color: #db2777; }
+
+.emotion {
+  font-size: 13px;
+  color: #1d1d1f;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.emoji-emotion {
-  font-size: 0.875rem;
-  color: var(--color-text);
-  margin: 0;
-  opacity: 0.8;
-}
-
-.emoji-format {
-  display: inline-block;
-  padding: 0.25rem 0.625rem;
-  border-radius: 4px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  width: fit-content;
-}
-
-.format-png {
-  background-color: #e3f2fd;
-  color: #1565c0;
-}
-
-.format-gif {
-  background-color: #fce4ec;
-  color: #c2185b;
-}
-
-.format-webp {
-  background-color: #f3e5f5;
-  color: #7b1fa2;
-}
-
-/* Size preview placeholder */
-.size-preview {
+.actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  background-color: var(--color-background);
-  border: 1px dashed var(--color-border);
+  padding: 8px 12px 12px;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.card:hover .actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+  }
+}
+
+.action-btn {
+  flex: 1;
+  padding: 8px;
   border-radius: 6px;
-}
-
-.preview-label {
-  font-size: 0.75rem;
-  color: var(--color-text);
-  opacity: 0.6;
-  font-weight: 500;
-}
-
-.preview-placeholder {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--color-text);
-  font-family: monospace;
-}
-
-/* Action buttons */
-.action-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
   border: none;
-  border-radius: 6px;
+  background: white;
+  color: #1d1d1f;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    transform 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
 }
 
-.btn:active {
-  transform: scale(0.97);
+.action-btn:hover {
+  background: #e5e5ea;
 }
 
-.btn-copy {
-  background-color: var(--color-background);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-
-.btn-copy:hover {
-  background-color: var(--color-background-mute);
-  border-color: var(--color-border-hover);
-}
-
-.btn-download {
-  background-color: hsla(160, 100%, 37%, 1);
-  color: #ffffff;
-}
-
-.btn-download:hover {
-  background-color: hsla(160, 100%, 32%, 1);
-}
-
-/* Responsive design */
-@media (max-width: 640px) {
-  .emoji-card {
-    padding: 1rem;
-  }
-
-  .emoji-image {
-    width: 80px;
-    height: 80px;
-  }
-
-  .emoji-image-wrapper {
-    min-height: 100px;
-  }
-
-  .checkbox-label {
-    display: none;
-  }
-
-  .action-buttons {
-    grid-template-columns: 1fr;
-  }
-
-  .btn {
-    width: 100%;
-  }
-}
-
-/* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
-  .format-png {
-    background-color: #1565c0;
-    color: #e3f2fd;
+  .card {
+    background: #2c2c2e;
   }
 
-  .format-gif {
-    background-color: #c2185b;
-    color: #fce4ec;
+  .card.selected {
+    background: #1c3a5e;
   }
 
-  .format-webp {
-    background-color: #7b1fa2;
-    color: #f3e5f5;
+  .select-btn {
+    border-color: #48484a;
+    background: #3a3a3c;
+  }
+
+  .error-icon {
+    color: #86868b;
+  }
+
+  .emotion {
+    color: #f5f5f7;
+  }
+
+  .action-btn {
+    background: #3a3a3c;
+    color: #f5f5f7;
+  }
+
+  .action-btn:hover {
+    background: #48484a;
   }
 }
 </style>
