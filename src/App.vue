@@ -8,7 +8,7 @@ import { useDownload } from './composables/useDownload'
 import EmojiCard from './components/EmojiCard.vue'
 
 const { emojis, characters, emotions, totalCount, loading } = useEmojis()
-const { size, sizes, setSize } = useSizeControl()
+const { size, sizes, setSize, setCustomSize, isCustom, customSize } = useSizeControl()
 const { selectedCount, toggleSelection, selectAll, selectNone, isSelected, allSelected, getSelectedEmojis } = useBatchSelection()
 const { toast: copyToast, copyEmoji, copyMultiple } = useClipboard()
 const { toast: downloadToast, downloadEmoji, downloadMultiple } = useDownload()
@@ -132,11 +132,21 @@ const hasActiveFilters = computed(() => {
             <button
               v-for="s in sizes"
               :key="s"
-              :class="{ active: size === s }"
+              :class="{ active: !isCustom && size === s }"
               @click="setSize(s)"
             >
               {{ s }}
             </button>
+            <input
+              type="number"
+              :value="isCustom ? customSize : ''"
+              @input="setCustomSize(($event.target as HTMLInputElement).value)"
+              placeholder="Custom"
+              min="8"
+              max="128"
+              class="custom-size-input"
+              :class="{ active: isCustom }"
+            />
           </div>
         </div>
 
@@ -369,6 +379,36 @@ const hasActiveFilters = computed(() => {
   background: white;
   color: #007aff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.custom-size-input {
+  width: 60px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: #86868b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.custom-size-input:focus {
+  outline: none;
+  background: white;
+  color: #007aff;
+}
+
+.custom-size-input.active {
+  background: white;
+  color: #007aff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.custom-size-input::placeholder {
+  color: #86868b;
 }
 
 .reset-btn {
@@ -647,6 +687,20 @@ const hasActiveFilters = computed(() => {
   }
 
   .size-buttons button.active {
+    background: #3a3a3c;
+    color: #0a84ff;
+  }
+
+  .custom-size-input {
+    color: #86868b;
+  }
+
+  .custom-size-input:focus {
+    background: #3a3a3c;
+    color: #0a84ff;
+  }
+
+  .custom-size-input.active {
     background: #3a3a3c;
     color: #0a84ff;
   }
