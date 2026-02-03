@@ -115,18 +115,22 @@ const formatLabel = computed(() => {
 
     <!-- Info section -->
     <div class="info">
-      <div class="info-main">
+      <!-- Row 1: Format -->
+      <div class="info-row">
         <span class="format" :class="emoji.format">
           {{ formatLabel }}
         </span>
-        <span class="emotion" :title="showTooltip ? emoji.emotion : ''">{{ truncatedEmotion }}</span>
+        <!-- Multi-format indicator on same row -->
+        <div v-if="emoji.availableFormats && emoji.availableFormats.length > 1" class="multi-badges" title="Multiple formats available">
+          <span v-for="f in emoji.availableFormats" :key="f" class="format-dot" :class="{ current: f === emoji.format }">
+            {{ f.toUpperCase() }}
+          </span>
+        </div>
       </div>
 
-      <!-- Multi-format indicator -->
-      <div v-if="emoji.availableFormats && emoji.availableFormats.length > 1" class="multi-badges" title="Multiple formats available">
-        <span v-for="f in emoji.availableFormats" :key="f" class="format-dot" :class="{ current: f === emoji.format }">
-          {{ f.toUpperCase() }}
-        </span>
+      <!-- Row 2: Emotion -->
+      <div class="info-row">
+        <span class="emotion" :title="showTooltip ? emoji.emotion : ''">{{ truncatedEmotion }}</span>
       </div>
     </div>
 
@@ -264,20 +268,25 @@ const formatLabel = computed(() => {
 /* Info section */
 .info {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   padding: var(--space-sm) var(--space-md) var(--space-md);
-  gap: var(--space-sm);
-  min-height: 48px;
+  gap: var(--space-xs);
+  min-height: 56px;
 }
 
-.info-main {
+.info-row {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
+  width: 100%;
+}
+
+.info-row:first-child {
+  justify-content: space-between;
+}
+
+.info-row:last-child {
+  justify-content: flex-start;
 }
 
 .format {
@@ -301,6 +310,8 @@ const formatLabel = computed(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: var(--font-weight-medium);
+  flex: 1;
+  min-width: 0;
 }
 
 /* Multi-format badges */
@@ -311,10 +322,10 @@ const formatLabel = computed(() => {
 }
 
 .format-dot {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: var(--font-weight-bold);
   padding: 2px 4px;
-  border-radius: 4px;
+  border-radius: 3px;
   background: var(--color-border);
   color: var(--color-text-tertiary);
   opacity: 0.7;
@@ -399,7 +410,8 @@ const formatLabel = computed(() => {
 
   .info {
     padding: var(--space-xs) var(--space-sm) var(--space-sm);
-    min-height: 44px;
+    min-height: 52px;
+    gap: var(--space-xs);
   }
 
   .format {
@@ -409,6 +421,11 @@ const formatLabel = computed(() => {
 
   .emotion {
     font-size: var(--font-size-xs);
+  }
+
+  .format-dot {
+    font-size: 7px;
+    padding: 1px 3px;
   }
 
   .action-btn {
