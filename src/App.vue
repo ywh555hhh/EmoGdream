@@ -80,8 +80,11 @@ const hasActiveFilters = computed(() => {
     <!-- Header -->
     <header class="header">
       <div class="header-content">
-        <h1 class="title">EmoGdream</h1>
-        <p class="subtitle">{{ totalCount }} anime stickers</p>
+        <div class="logo">
+          <span class="logo-emoji">✨</span>
+          <h1 class="title">EmoGdream</h1>
+        </div>
+        <p class="subtitle">{{ totalCount }} stickers</p>
       </div>
     </header>
 
@@ -260,10 +263,21 @@ const hasActiveFilters = computed(() => {
   text-align: center;
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.logo-emoji {
+  font-size: 24px;
+}
+
 .title {
   font-size: 28px;
   font-weight: 700;
-  margin: 0 0 8px 0;
+  margin: 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -273,7 +287,7 @@ const hasActiveFilters = computed(() => {
 .subtitle {
   font-size: 14px;
   color: #86868b;
-  margin: 0;
+  margin: 4px 0 0 0;
 }
 
 .filters {
