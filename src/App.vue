@@ -402,11 +402,10 @@ watch(selectedCount, (newVal, oldVal) => {
 
 <style scoped>
 .app {
+  width: 100%;
   min-height: 100vh;
   background: var(--color-bg);
-  padding: var(--space-lg);
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md);
 }
 
 /* ========== Header ========== */
