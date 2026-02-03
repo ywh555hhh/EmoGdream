@@ -6,16 +6,14 @@ import { useBatchSelection } from './composables/useBatchSelection'
 import { useClipboard } from './composables/useClipboard'
 import { useDownload } from './composables/useDownload'
 import { useZipDownload } from './composables/useZipDownload'
-import { useI18n } from './composables/useI18n'
 import EmojiCard from './components/EmojiCard.vue'
 
-const { emojis, characters, emotions, totalCount, loading, getFilteredEmojis, debouncedSearchQuery } = useEmojis()
+const { emojis, characters, emotions, totalCount, loading, getFilteredEmojis } = useEmojis()
 const { size, sizes, setSize, setCustomSize, isCustom, customSize } = useSizeControl()
 const { selectedCount, toggleSelection, selectAll, selectNone, isSelected, allSelected, getSelectedEmojis } = useBatchSelection()
 const { toast: copyToast, copyEmoji, copyMultiple } = useClipboard()
 const { toast: downloadToast, downloadEmoji, downloadMultiple } = useDownload()
 const { isZipping, progress, toast: zipToast, downloadZip } = useZipDownload()
-const { locale, t } = useI18n()
 
 // Preview size is fixed at 64px for better visibility
 const previewSize = 64
@@ -25,13 +23,14 @@ const selectedFormat = ref<'all' | 'png' | 'gif' | 'webp'>('all')
 const selectedEmotion = ref<string>('all')
 const searchQuery = ref<string>('')
 const isSearchFocused = ref(false)
+const locale = ref<'zh' | 'en'>('zh')
 
-// Use the new filtering logic that returns emojis with correct format paths
+// Use new filtering logic that returns emojis with correct format paths
 const filteredEmojis = computed(() => {
-  return getFilteredEmojis(selectedCharacter.value, selectedFormat.value, selectedEmotion.value, debouncedSearchQuery.value)
+  return getFilteredEmojis(selectedCharacter.value, selectedFormat.value, selectedEmotion.value, searchQuery.value)
 })
 
-// Get unique emotions from the current filtered results
+// Get unique emotions from current filtered results
 const availableEmotions = computed(() => {
   const set = new Set(filteredEmojis.value.map(e => e.emotion))
   return Array.from(set).sort()
@@ -91,21 +90,6 @@ const hasActiveFilters = computed(() => {
     selectedEmotion.value !== 'all' ||
     searchQuery.value !== ''
 })
-
-// Computed toast for display
-const activeToast = computed(() => {
-  if (zipToast.value.show) return zipToast.value
-  if (downloadToast.value.show) return downloadToast.value
-  if (copyToast.value.show) return copyToast.value
-  return { show: false, message: '', type: 'success' as const }
-})
-
-// Watch for selection changes to scroll into view
-watch(selectedCount, (newVal, oldVal) => {
-  if (newVal > 0 && oldVal === 0) {
-    // Selection started
-  }
-})
 </script>
 
 <template>
@@ -115,18 +99,18 @@ watch(selectedCount, (newVal, oldVal) => {
       <div class="header-content">
         <div class="title-wrapper">
           <span class="title-icon">✨</span>
-          <h1 class="title">{{ t('app.title') }}</h1>
+          <h1 class="title">EmoGdream</h1>
           <div class="header-actions">
             <button
-              @click="locale.setLocale(locale.locale === 'zh' ? 'en' : 'zh')"
+              @click="locale = locale === 'zh' ? 'en' : 'zh'"
               class="lang-btn"
-              :aria-label="`Switch to ${locale.locale === 'zh' ? 'English' : '中文'}`"
+              aria-label="Switch language"
             >
-              {{ locale.locale === 'zh' ? '中' : 'EN' }}
+              {{ locale === 'zh' ? 'EN' : '中' }}
             </button>
           </div>
-          <p class="subtitle">{{ t('app.subtitle', { count: totalCount }) }}</p>
         </div>
+        <p class="subtitle">{{ totalCount }} 张表情包 · 复制 HTML 标签即可在任何地方使用</p>
       </div>
     </header>
 
@@ -142,7 +126,7 @@ watch(selectedCount, (newVal, oldVal) => {
           <input
             v-model="searchQuery"
             type="text"
-            :placeholder="t('searchPlaceholder')"
+            placeholder="按角色或情绪搜索..."
             class="search-input"
             aria-label="Search stickers"
             @focus="isSearchFocused = true"
@@ -169,10 +153,10 @@ watch(selectedCount, (newVal, oldVal) => {
             :class="{ active: selectedFormat === fmt }"
             @click="selectedFormat = fmt as any; selectedEmotion = 'all'"
             class="filter-pill"
-            :aria-label="`Filter by ${selectedFormat === 'all' ? t('formatAll', { count: totalCount }) : t('formatOnly', { format: selectedFormat === 'webp' ? 'WebP' : selectedFormat === 'png' ? 'PNG' : selectedFormat === 'gif' ? 'GIF' : ''} format`"
+            aria-label="Filter by format"
             :aria-pressed="selectedFormat === fmt"
           >
-            {{ fmt === 'all' ? 'All' : fmt.toUpperCase() }}
+            {{ fmt === 'all' ? 'All' : fmt === 'webp' ? 'WebP' : fmt === 'png' ? 'PNG' : fmt === 'gif' ? 'GIF' : '' }}
           </button>
         </div>
       </div>
@@ -182,13 +166,13 @@ watch(selectedCount, (newVal, oldVal) => {
         <div class="filter-item">
           <label class="filter-label">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0 0-4-4H8a4 4 0 0 0 0-4 4v2" />
+              <path d="M20 21v-2a4 4 0 0 1-2-2V4a2 0 0 1 2 2v1" />
               <circle cx="12" cy="7" r="4" />
             </svg>
-            Character
+            {{ locale === 'zh' ? '角色' : 'Character' }}
           </label>
           <select v-model="selectedCharacter" class="filter-select">
-            <option value="all">{{ t('filterAll', { count: totalCount }) }}</option>
+            <option value="all">全部角色</option>
             <option v-for="char in characters" :key="char.id" :value="char.id">
               {{ char.name }}
             </option>
@@ -201,10 +185,10 @@ watch(selectedCount, (newVal, oldVal) => {
               <circle cx="12" cy="12" r="10" />
               <path d="M8 14s1.5 2 4 2 4-2 4-2" />
             </svg>
-            Emotion
+            {{ locale === 'zh' ? '情绪' : 'Emotion' }}
           </label>
           <select v-model="selectedEmotion" :disabled="availableEmotions.length === 0" class="filter-select">
-            <option value="all">{{ t('emotionAll') }}</option>
+            <option value="all">全部情绪</option>
             <option v-for="emo in availableEmotions" :key="emo" :value="emo">
               {{ emo }}
             </option>
@@ -221,20 +205,20 @@ watch(selectedCount, (newVal, oldVal) => {
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
-          Clear all
+          清除筛选
         </button>
       </div>
 
       <!-- Size selector -->
       <div class="size-section">
-        <label class="size-label">Copy size</label>
+        <label class="size-label">复制大小：{{ size }}px</label>
         <div class="size-buttons">
           <button
             v-for="s in sizes"
             :key="s"
             :class="{ active: !isCustom && size === s }"
             @click="setSize(s)"
-            :aria-label="`Set size to ${s}px`"
+            :aria-label="'Set size to ' + s + 'px'"
             :aria-pressed="!isCustom && size === s"
             class="size-btn"
           >
@@ -245,7 +229,7 @@ watch(selectedCount, (newVal, oldVal) => {
               type="number"
               :value="isCustom ? customSize : ''"
               @input="setCustomSize(($event.target as HTMLInputElement).value)"
-              placeholder="Custom"
+              placeholder="自定义"
               min="8"
               max="128"
               class="custom-size-input"
@@ -261,12 +245,11 @@ watch(selectedCount, (newVal, oldVal) => {
     <section class="results-section">
       <div class="results-info">
         <span class="count">{{ filteredCount }}</span>
-        <span class="text">{{ filteredCount === 1 ? 'sticker' : 'stickers' }} found</span>
+        <span class="text">张找到表情包</span>
         <span v-if="hasActiveFilters" class="filter-indicator" aria-label="Filters active">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
         </span>
       </div>
@@ -276,28 +259,26 @@ watch(selectedCount, (newVal, oldVal) => {
         <div class="selection-controls">
           <span class="selected-count">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 0-5.93-9.14" />
+              <path d="M22 11.08V12a10 0 0 1 0-5.93-9.14" />
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
-            <strong>{{ selectedCount }}</strong> selected
+            <strong>{{ selectedCount }}</strong> 已选择
           </span>
           <button
             @click="selectAll(filteredEmojis)"
             :disabled="allSelected(filteredEmojis)"
             class="control-btn"
-            aria-label="Select all"
-            title="Select all visible"
+            aria-label="Select all visible"
           >
-            All
+            全选
           </button>
           <button
             @click="selectNone"
             :disabled="selectedCount === 0"
             class="control-btn"
-            aria-label="Select none"
-            title="Clear selection"
-          >
-            None
+            aria-label="Clear selection"
+            >
+            清除选择
           </button>
         </div>
 
@@ -307,30 +288,28 @@ watch(selectedCount, (newVal, oldVal) => {
             :disabled="selectedCount === 0"
             class="action-btn"
             aria-label="Copy selected as HTML"
-            title="Copy as HTML tags"
+            title="Copy as HTML"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 0 0 1 2 2v1" />
             </svg>
-            Copy
+            复制
           </button>
           <button
             @click="handleBatchZipDownload"
             :disabled="selectedCount === 0 || isZipping"
-            class="action-btn primary"
+            class="action-btn download-btn"
             aria-label="Download as ZIP"
-            :title="isZipping ? `Creating ZIP... ${progress.percentage}%` : 'Download as ZIP'"
+            :title="isZipping ? 'Creating ZIP...' + progress.percentage + '%' : 'Download as ZIP'"
           >
-            <svg v-if="!isZipping" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2-2V4a2 0 0 1 2 2v1" />
+              <polyline points="7 10 12 15 17 10 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            <svg v-else class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-            </svg>
-            <span>{{ isZipping ? `${progress.percentage}%` : 'ZIP' }}</span>
+            <span v-if="!isZipping">打包为 ZIP</span>
           </button>
         </div>
       </div>
@@ -342,7 +321,7 @@ watch(selectedCount, (newVal, oldVal) => {
         <div class="progress-fill" :style="{ width: `${progress.percentage}%` }"></div>
       </div>
       <div class="progress-text">
-        <span>Creating ZIP archive...</span>
+        <span>正在创建 ZIP 档案...</span>
         <span class="progress-count">{{ progress.current }} / {{ progress.total }}</span>
       </div>
     </div>
@@ -350,7 +329,7 @@ watch(selectedCount, (newVal, oldVal) => {
     <!-- Loading state -->
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
-      <p>Loading stickers...</p>
+      <p>加载中...</p>
     </div>
 
     <!-- Empty state -->
@@ -361,11 +340,11 @@ watch(selectedCount, (newVal, oldVal) => {
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
       </div>
-      <h3 class="empty-title">No stickers found</h3>
-      <p v-if="selectedFormat !== 'all'" class="empty-hint">Try selecting "All formats" or a different format</p>
-      <p v-else-if="hasActiveFilters" class="empty-hint">Try clearing filters or using broader search terms</p>
-      <p v-else class="empty-hint">Browse all stickers by selecting a character or emotion</p>
-      <button v-if="hasActiveFilters" @click="resetFilters" class="empty-action">Clear all filters</button>
+      <h3 class="empty-title">没有找到表情包</h3>
+      <p v-if="selectedFormat !== 'all'" class="empty-hint">试试选择"全部格式"或其他格式</p>
+      <p v-else-if="hasActiveFilters" class="empty-hint">试试清除筛选条件或使用更广泛的搜索词</p>
+      <p v-else class="empty-hint">浏览所有表情包，选择一个角色或情绪</p>
+      <button v-if="hasActiveFilters" @click="resetFilters" class="btn">清除所有筛选</button>
     </div>
 
     <!-- Emoji grid -->
@@ -384,28 +363,25 @@ watch(selectedCount, (newVal, oldVal) => {
 
     <!-- Footer -->
     <footer class="footer">
-      <p class="footer-text">
-        {{ t('footerTip') }}
-      </p>
+      <p class="footer-text">选中多张表情包后点击 ZIP 即可一次下载全部</p>
     </footer>
 
     <!-- Toast notification -->
     <Transition name="toast">
       <div
-        v-if="activeToast.show"
+        v-if="copyToast.show || downloadToast.show || zipToast.show"
         class="toast"
-        :class="{ error: activeToast.type === 'error' }"
+        :class="{ error: (copyToast.show && copyToast.type === 'error') || (downloadToast.show && downloadToast.type === 'error') || (zipToast.show && zipToast.type === 'error') }"
         role="alert"
         aria-live="polite"
       >
-        <svg v-if="activeToast.type === 'success'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <svg v-if="copyToast.type === 'success'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <polyline points="20 6 9 17 4 12" />
         </svg>
-        <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="15" y1="9" x2="9" y2="15" />
+        <svg v-else-if="downloadToast.type === 'success'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2-2V4a2 0 0 1 2 2v1" />
         </svg>
-        <span>{{ activeToast.message }}</span>
+        <span>{{ copyToast.show ? copyToast.message : (downloadToast.show ? downloadToast.message : zipToast.message) }}</span>
       </div>
     </Transition>
   </div>
@@ -413,10 +389,10 @@ watch(selectedCount, (newVal, oldVal) => {
 
 <style scoped>
 .app {
-  width: 100%;
   min-height: 100vh;
   background: var(--color-bg);
-  padding: var(--space-lg) var(--space-md);
+  width: 100%;
+  padding: 0;
 }
 
 /* ========== Header ========== */
@@ -424,7 +400,7 @@ watch(selectedCount, (newVal, oldVal) => {
   background: var(--color-bg-elevated);
   border-radius: var(--radius-2xl);
   padding: var(--space-2xl);
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
   box-shadow: var(--shadow-sm);
 }
 
@@ -435,7 +411,6 @@ watch(selectedCount, (newVal, oldVal) => {
 .title-wrapper {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: var(--space-sm);
   margin-bottom: var(--space-xs);
 }
@@ -448,15 +423,42 @@ watch(selectedCount, (newVal, oldVal) => {
 .title {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
-  margin: 0;
+  margin: 0 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+.header-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.lang-btn:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+}
+
 .subtitle {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
   color: var(--color-text-secondary);
   margin: 0;
 }
@@ -465,12 +467,12 @@ watch(selectedCount, (newVal, oldVal) => {
 .filters {
   background: var(--color-bg-elevated);
   border-radius: var(--radius-2xl);
-  padding: var(--space-xl);
+  padding: var(--space-lg);
   margin-bottom: var(--space-lg);
   box-shadow: var(--shadow-sm);
 }
 
-/* Search Section */
+/* Search */
 .search-section {
   margin-bottom: var(--space-lg);
 }
@@ -493,7 +495,7 @@ watch(selectedCount, (newVal, oldVal) => {
 
 .search-icon {
   position: absolute;
-  left: var(--space-md);
+  left: 16px;
   color: var(--color-text-tertiary);
   pointer-events: none;
   transition: color var(--transition-fast);
@@ -505,9 +507,9 @@ watch(selectedCount, (newVal, oldVal) => {
 
 .search-input {
   flex: 1;
-  padding: 14px 48px 14px 48px;
+  padding: 12px 48px 12px;
   border: none;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   font-size: var(--font-size-lg);
   background: transparent;
   color: var(--color-text-primary);
@@ -524,7 +526,7 @@ watch(selectedCount, (newVal, oldVal) => {
 .clear-search {
   position: absolute;
   right: var(--space-sm);
-  padding: var(--space-sm);
+  padding: 6px;
   border: none;
   border-radius: var(--radius-md);
   background: var(--color-border);
@@ -532,7 +534,6 @@ watch(selectedCount, (newVal, oldVal) => {
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
   transition: all var(--transition-fast);
 }
 
@@ -542,10 +543,10 @@ watch(selectedCount, (newVal, oldVal) => {
   transform: scale(1.1);
 }
 
-/* Quick Filters as Pills */
+/* Quick filters as pills */
 .quick-filters {
   display: flex;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   margin-top: var(--space-md);
   flex-wrap: wrap;
 }
@@ -553,11 +554,11 @@ watch(selectedCount, (newVal, oldVal) => {
 .filter-pill {
   padding: 8px var(--space-md);
   border-radius: 50px;
-  border: 1.5px solid var(--color-border);
+  border: 2px solid var(--color-border);
   background: var(--color-bg-elevated);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -574,10 +575,10 @@ watch(selectedCount, (newVal, oldVal) => {
   box-shadow: 0 2px 8px color-mix(in srgb, var(--color-accent) 30%, transparent);
 }
 
-/* Dropdown Filters */
+/* Dropdown filters */
 .dropdown-filters {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: var(--space-md);
   padding-top: var(--space-lg);
   border-top: 1px solid var(--color-border);
@@ -594,22 +595,21 @@ watch(selectedCount, (newVal, oldVal) => {
   align-items: center;
   gap: var(--space-xs);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
-  margin-bottom: 2px;
 }
 
 .filter-select {
-  padding: 12px var(--space-md);
-  padding-right: 36px;
-  border: 1.5px solid var(--color-border);
+  padding: 10px var(--space-md);
+  padding-right: 32px;
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
   background: var(--color-bg-subtle);
   color: var(--color-text-primary);
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'%2F%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right var(--space-md) center;
   transition: all var(--transition-fast);
@@ -630,18 +630,14 @@ watch(selectedCount, (newVal, oldVal) => {
   grid-column: span 2;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-xs);
-  padding: 10px var(--space-md);
+  gap: var(--space-sm);
+  padding: 8px var(--space-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-bg-subtle);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
-  margin-top: var(--space-sm);
 }
 
 .reset-all-btn:hover {
@@ -649,19 +645,18 @@ watch(selectedCount, (newVal, oldVal) => {
   border-color: var(--color-border-hover);
 }
 
-/* Size Section */
+/* Size section */
 .size-section {
   display: flex;
   align-items: center;
   gap: var(--space-md);
   padding-top: var(--space-lg);
   border-top: 1px solid var(--color-border);
-  flex-wrap: wrap;
 }
 
 .size-label {
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
@@ -675,7 +670,7 @@ watch(selectedCount, (newVal, oldVal) => {
 }
 
 .size-btn {
-  padding: 8px 14px;
+  padding: 6px 10px;
   border: none;
   border-radius: var(--radius-md);
   background: transparent;
@@ -687,10 +682,6 @@ watch(selectedCount, (newVal, oldVal) => {
   min-width: 40px;
 }
 
-.size-btn:hover {
-  color: var(--color-text-primary);
-}
-
 .size-btn.active {
   background: var(--color-bg-elevated);
   color: var(--color-accent);
@@ -700,15 +691,16 @@ watch(selectedCount, (newVal, oldVal) => {
 .custom-size-wrapper {
   display: flex;
   align-items: center;
-  border: 1.5px solid transparent;
+  gap: var(--space-xs);
+  border: 2px solid transparent;
   border-radius: var(--radius-md);
-  padding: 6px 6px 6px var(--space-sm);
+  padding: 6px var(--space-sm);
   transition: all var(--transition-fast);
 }
 
 .custom-size-wrapper.active {
-  background: var(--color-bg-elevated);
   border-color: var(--color-accent);
+  background: var(--color-bg-elevated);
   box-shadow: var(--shadow-xs);
 }
 
@@ -728,13 +720,18 @@ watch(selectedCount, (newVal, oldVal) => {
   outline: none;
 }
 
+.custom-size-input.active {
+  color: var(--color-accent);
+  background: var(--color-bg-elevated);
+}
+
 .custom-size-label {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-tertiary);
 }
 
-/* ========== Results Section ========== */
+/* Results section */
 .results-section {
   background: var(--color-bg-elevated);
   border-radius: var(--radius-2xl);
@@ -745,21 +742,17 @@ watch(selectedCount, (newVal, oldVal) => {
 
 .results-info {
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
+  align-items: baseline;
+  gap: var(--space-xs);
   margin-bottom: var(--space-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
 }
 
 .results-info .count {
-  font-size: var(--font-size-4xl);
+  font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
-  color: var(--color-accent);
-  line-height: 1;
-}
-
-.results-info .text {
-  font-size: var(--font-size-lg);
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
 }
 
 .filter-indicator {
@@ -772,12 +765,15 @@ watch(selectedCount, (newVal, oldVal) => {
   color: var(--color-accent);
 }
 
-/* Batch Actions */
+/* Batch actions */
 .batch-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
+  padding-top: var(--space-md);
+  margin-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
 }
 
 .selection-controls {
@@ -789,11 +785,10 @@ watch(selectedCount, (newVal, oldVal) => {
 .selected-count {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-  padding-right: var(--space-md);
+  color: var(--color-accent);
 }
 
 .control-btn {
@@ -801,15 +796,13 @@ watch(selectedCount, (newVal, oldVal) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-bg-subtle);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .control-btn:hover:not(:disabled) {
-  background: var(--color-border);
+  background: var(--color-bg-elevated);
   border-color: var(--color-border-hover);
 }
 
@@ -820,26 +813,26 @@ watch(selectedCount, (newVal, oldVal) => {
 
 .action-buttons {
   display: flex;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
 }
 
 .action-btn {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: 10px var(--space-lg);
-  border: none;
+  padding: 10px var(--space-md);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: var(--color-bg-subtle);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  background: var(--color-bg-elevated);
   color: var(--color-text-primary);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .action-btn:hover:not(:disabled) {
-  background: var(--color-border);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
 }
 
 .action-btn:disabled {
@@ -849,17 +842,15 @@ watch(selectedCount, (newVal, oldVal) => {
 
 .action-btn.primary {
   background: var(--color-accent);
+  border-color: var(--color-accent);
   color: white;
   box-shadow: 0 4px 12px color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 .action-btn.primary:hover:not(:disabled) {
   background: var(--color-accent-hover);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--color-accent-hover) 40%, transparent);
   transform: translateY(-1px);
-}
-
-.action-btn.primary:disabled {
-  box-shadow: none;
 }
 
 /* ZIP Progress */
@@ -916,14 +907,14 @@ watch(selectedCount, (newVal, oldVal) => {
   border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Empty State */
+/* Empty state */
 .empty {
   display: flex;
   flex-direction: column;
@@ -942,37 +933,40 @@ watch(selectedCount, (newVal, oldVal) => {
   border-radius: 50%;
   background: color-mix(in srgb, var(--color-border) 20%, transparent);
   color: var(--color-text-tertiary);
-  margin-bottom: var(--space-lg);
 }
 
 .empty-title {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
-  margin: 0 0 var(--space-sm) 0;
+  margin: 0 0 0 0 var(--space-md) 0;
+}
+
+.empty p {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  margin: 0 0 0 var(--space-md) 0;
 }
 
 .empty-hint {
   font-size: var(--font-size-lg);
-  color: var(--color-text-secondary);
-  margin: 0 0 var(--space-md) 0;
+  color: var(--color-text-tertiary);
 }
 
-.empty-action {
-  padding: 12px var(--space-xl);
-  border: 2px solid var(--color-accent);
+.btn {
+  padding: 10px var(--space-lg);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: transparent;
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
+  background: var(--color-bg-elevated);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
   color: var(--color-accent);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.empty-action:hover {
-  background: var(--color-accent);
-  color: white;
+.btn:hover {
+  background: var(--color-bg-subtle);
 }
 
 /* Grid */
@@ -997,7 +991,7 @@ watch(selectedCount, (newVal, oldVal) => {
 
 .highlight {
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: 6px;
   background: color-mix(in srgb, var(--color-accent) 15%, transparent);
   color: var(--color-accent);
   font-weight: var(--font-weight-semibold);
@@ -1015,8 +1009,8 @@ watch(selectedCount, (newVal, oldVal) => {
   padding: 14px var(--space-xl);
   background: var(--color-success);
   color: white;
-  border-radius: var(--radius-xl);
-  font-size: var(--font-size-base);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-medium);
   box-shadow: var(--shadow-lg);
   z-index: var(--z-toast);
@@ -1032,14 +1026,9 @@ watch(selectedCount, (newVal, oldVal) => {
 }
 
 .toast-enter-from,
-.toast-leave-to {
+.toast-toast-leave-to {
   opacity: 0;
-  transform: translateX(-50%) translateY(16px);
-}
-
-/* Spin animation */
-.spin {
-  animation: spin 1s linear infinite;
+  transform: translateX(-50%) translateY(20px);
 }
 
 /* ========== Responsive ========== */
@@ -1049,7 +1038,7 @@ watch(selectedCount, (newVal, oldVal) => {
   }
 
   .header {
-    padding: var(--space-xl);
+    padding: var(--space-lg);
   }
 
   .title {
@@ -1067,128 +1056,73 @@ watch(selectedCount, (newVal, oldVal) => {
 }
 
 @media (max-width: 768px) {
-  .batch-actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-md);
-  }
-
-  .selection-controls {
-    justify-content: space-between;
-  }
-
-  .action-buttons {
-    flex-direction: row;
-  }
-
-  .action-btn {
-    flex: 1;
-    justify-content: center;
-  }
-
-  .results-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-xs);
-  }
-
-  .dropdown-filters {
-    grid-template-columns: 1fr;
-  }
-
-  .reset-all-btn {
-    grid-column: span 1;
-  }
-}
-
-@media (max-width: 640px) {
   .app {
     padding: var(--space-sm);
   }
 
   .header {
-    padding: var(--space-lg);
-  }
-
-  .title-icon {
-    font-size: 24px;
+    padding: var(--space-md);
   }
 
   .title {
     font-size: var(--font-size-xl);
   }
 
-  .subtitle {
-    font-size: var(--font-size-sm);
+  .title-icon {
+    font-size: 24px;
   }
 
   .filters {
     padding: var(--space-md);
   }
 
-  .search-wrapper {
-    border-radius: var(--radius-lg);
-  }
-
-  .search-input {
-    padding: 12px 40px 12px 40px;
-    font-size: var(--font-size-base);
+  .filters-row {
+    grid-template-columns: 1fr;
+  gap: var(--space-sm);
   }
 
   .quick-filters {
-    gap: var(--space-xs);
+    flex-wrap: wrap;
+    gap: var(--space-sm);
   }
 
-  .filter-pill {
-    padding: 6px var(--space-sm);
+  .filter-label {
     font-size: var(--font-size-xs);
   }
 
-  .size-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .size-label {
-    align-self: flex-start;
+  .filter-pill {
+    padding: 6px 8px;
+    font-size: var(--font-size-xs);
   }
 
   .size-buttons {
     width: 100%;
-    justify-content: center;
+    overflow-x: auto;
+  }
+
+  .batch-actions {
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .batch-buttons {
+    flex-direction: row;
+  }
+
+  .results-info {
+    text-align: left;
+    font-size: var(--font-size-md);
   }
 
   .results-info .count {
-    font-size: var(--font-size-3xl);
-  }
-
-  .action-buttons {
-    flex-direction: column;
+    font-size: var(--font-size-2xl);
   }
 
   .grid {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-sm);
-  }
-}
-
-@media (max-width: 480px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-xs);
-  }
-
-  .selection-controls {
-    flex-wrap: wrap;
-    gap: var(--space-xs);
-  }
-
-  .selected-count {
-    width: 100%;
-    justify-content: center;
-    padding-right: 0;
-    padding-bottom: var(--space-sm);
-    border-bottom: 1px solid var(--color-border);
   }
 }
 </style>
