@@ -1,0 +1,53 @@
+{
+  "app": {
+    "title": "EmoGdream",
+    "subtitle": "{{ count }} 张表情包 · 复制 HTML 标签即可在任何地方使用",
+    "searchPlaceholder": "按角色或情绪搜索...",
+    "filterAll": "全部",
+    "formatAll": "全部",
+    "formatWebP": "全部 ({{ webp }})",
+    "formatPNG": "PNG ({{ png }})",
+    "formatGIF": "GIF ({{ gif }})",
+    "allCharacters": "全部角色",
+    "allEmotions": "全部情绪",
+    "stickersFound": "张表情包",
+    "noStickers": "没有找到表情包",
+    "tryAllFormats": "试试选择 \"全部格式\" 或其他格式",
+    "tryClearFilters": "试试清除筛选条件或使用更宽泛的搜索词",
+    "tryBrowse": "浏览所有表情包，选择一个角色或情绪",
+    "selectToCopy": "选中复制",
+    "selectToDownload": "选中下载",
+    "downloadAsZIP": "下载为 ZIP",
+    "copyHTML": "复制 HTML",
+    "download": "下载",
+    "copy": "复制",
+    "download": "保存",
+    "copyWebP": "复制 WebP",
+    "copyPNG": "复制 PNG",
+    "copyGIF": "复制 GIF",
+    "copyAll": "全部",
+    "copySuccess": "已复制 {{ count }} 张表情包",
+    "copySingle": "已复制 1 张表情包",
+    "downloadSuccess": "已下载 {{ count }} 张表情包",
+    "downloadSingle": "已下载 1 张表情包",
+    "downloadAll": "已下载 {{ count }} 张表情包",
+    "downloadZIP": "正在创建 ZIP 档案..."
+  },
+  "header": {
+    "help": "每个表情包可能有多种格式。按格式筛选来选择。"
+  },
+  "filters": {
+    "character": "角色",
+    "format": "格式",
+    "emotion": "情绪"
+  },
+  "card": {
+    "copyWebP": "复制 WebP",
+    "copyPNG": "复制 PNG",
+    "copyGIF": "复制 GIF",
+    "download": "下载"
+  },
+  "footer": {
+    "tip": "选中多张表情包后点击 ZIP 即可一次下载全部"
+  }
+}

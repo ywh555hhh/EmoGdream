@@ -351,7 +351,7 @@ const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.f
   flex-shrink: 0;
 }
 
-/* Action buttons overlay */
+/* Action buttons overlay - always show copy buttons, download on hover */
 .actions {
   position: absolute;
   inset: 0;
@@ -364,8 +364,11 @@ const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.f
   transition: all var(--transition-fast);
 }
 
-.card:hover .actions,
-.card.selected .actions {
+/* Show download button on card hover */
+.actions:hover .download-btn {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
   opacity: 1;
 }
 

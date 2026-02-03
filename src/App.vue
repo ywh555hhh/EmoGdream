@@ -6,6 +6,7 @@ import { useBatchSelection } from './composables/useBatchSelection'
 import { useClipboard } from './composables/useClipboard'
 import { useDownload } from './composables/useDownload'
 import { useZipDownload } from './composables/useZipDownload'
+import { useI18n } from './composables/useI18n'
 import EmojiCard from './components/EmojiCard.vue'
 
 const { emojis, characters, emotions, totalCount, loading, getFilteredEmojis, debouncedSearchQuery } = useEmojis()
@@ -14,6 +15,7 @@ const { selectedCount, toggleSelection, selectAll, selectNone, isSelected, allSe
 const { toast: copyToast, copyEmoji, copyMultiple } = useClipboard()
 const { toast: downloadToast, downloadEmoji, downloadMultiple } = useDownload()
 const { isZipping, progress, toast: zipToast, downloadZip } = useZipDownload()
+const { locale, t } = useI18n()
 
 // Preview size is fixed at 64px for better visibility
 const previewSize = 64
@@ -113,9 +115,18 @@ watch(selectedCount, (newVal, oldVal) => {
       <div class="header-content">
         <div class="title-wrapper">
           <span class="title-icon">✨</span>
-          <h1 class="title">EmoGdream</h1>
+          <h1 class="title">{{ t('app.title') }}</h1>
+          <div class="header-actions">
+            <button
+              @click="locale.setLocale(locale.locale === 'zh' ? 'en' : 'zh')"
+              class="lang-btn"
+              :aria-label="`Switch to ${locale.locale === 'zh' ? 'English' : '中文'}`"
+            >
+              {{ locale.locale === 'zh' ? '中' : 'EN' }}
+            </button>
+          </div>
+          <p class="subtitle">{{ t('app.subtitle', { count: totalCount }) }}</p>
         </div>
-        <p class="subtitle">{{ totalCount }} stickers · Copy HTML tags for use anywhere</p>
       </div>
     </header>
 
@@ -131,7 +142,7 @@ watch(selectedCount, (newVal, oldVal) => {
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search by character, emotion..."
+            :placeholder="t('searchPlaceholder')"
             class="search-input"
             aria-label="Search stickers"
             @focus="isSearchFocused = true"
@@ -158,7 +169,7 @@ watch(selectedCount, (newVal, oldVal) => {
             :class="{ active: selectedFormat === fmt }"
             @click="selectedFormat = fmt as any; selectedEmotion = 'all'"
             class="filter-pill"
-            :aria-label="`Filter by ${fmt === 'all' ? 'All formats' : fmt.toUpperCase()} format`"
+            :aria-label="`Filter by ${selectedFormat === 'all' ? t('formatAll', { count: totalCount }) : t('formatOnly', { format: selectedFormat === 'webp' ? 'WebP' : selectedFormat === 'png' ? 'PNG' : selectedFormat === 'gif' ? 'GIF' : ''} format`"
             :aria-pressed="selectedFormat === fmt"
           >
             {{ fmt === 'all' ? 'All' : fmt.toUpperCase() }}
@@ -177,7 +188,7 @@ watch(selectedCount, (newVal, oldVal) => {
             Character
           </label>
           <select v-model="selectedCharacter" class="filter-select">
-            <option value="all">All Characters</option>
+            <option value="all">{{ t('filterAll', { count: totalCount }) }}</option>
             <option v-for="char in characters" :key="char.id" :value="char.id">
               {{ char.name }}
             </option>
@@ -193,7 +204,7 @@ watch(selectedCount, (newVal, oldVal) => {
             Emotion
           </label>
           <select v-model="selectedEmotion" :disabled="availableEmotions.length === 0" class="filter-select">
-            <option value="all">All Emotions</option>
+            <option value="all">{{ t('emotionAll') }}</option>
             <option v-for="emo in availableEmotions" :key="emo" :value="emo">
               {{ emo }}
             </option>
@@ -374,7 +385,7 @@ watch(selectedCount, (newVal, oldVal) => {
     <!-- Footer -->
     <footer class="footer">
       <p class="footer-text">
-        Select multiple stickers and click <span class="highlight">ZIP</span> to download all at once
+        {{ t('footerTip') }}
       </p>
     </footer>
 

@@ -1,0 +1,53 @@
+{
+  "app": {
+    "title": "EmoGdream",
+    "subtitle": "{{ count }} Stickers · Copy HTML tags for use anywhere",
+    "searchPlaceholder": "Search by character, emotion...",
+    "filterAll": "All",
+    "formatAll": "All ({{ webp }})",
+    "formatPNG": "PNG ({{ png }})",
+    "formatGIF": "GIF ({{ gif }})",
+    "allCharacters": "All Characters",
+    "allEmotions": "All Emotions",
+    "stickersFound": "stickers found",
+    "noStickers": "No stickers found",
+    "tryAllFormats": "Try selecting \"All formats\" or a different format",
+    "tryClearFilters": "Try clearing filters or using broader search terms",
+    "tryBrowse": "Browse all stickers by selecting a character or emotion",
+    "selectToCopy": "Select to copy",
+    "selectToDownload": "Select to download",
+    "downloadAsZIP": "Download as ZIP",
+    "copyHTML": "Copy HTML",
+    "download": "Download",
+    "copy": "Copy",
+    "download": "Save",
+    "copyWebP": "Copy WebP",
+    "copyPNG": "Copy PNG",
+    "copyGIF": "Copy GIF",
+    "copyAll": "All",
+    "copySuccess": "Copied {{ count }} stickers",
+    "copySingle": "Copied 1 sticker",
+    "downloadSuccess": "Downloaded {{ count }} stickers",
+    "downloadSingle": "Downloaded 1 sticker",
+    "downloadAll": "Downloaded {{ count }} stickers",
+    "downloadZIP": "Creating ZIP archive..."
+  },
+  "header": {
+    "help": "Each sticker may have multiple formats. Filter by format to choose."
+  },
+  "filters": {
+    "character": "Character",
+    "format": "Format",
+    "emotion": "Emotion"
+  },
+  "card": {
+    "copyWebP": "Copy WebP",
+    "copyPNG": "Copy PNG",
+    "copyGIF": "Copy GIF",
+    "download": "Download"
+  },
+  "footer": {
+    "tip": "Select multiple stickers and click ZIP to download all at once"
+  }
+}
+}
