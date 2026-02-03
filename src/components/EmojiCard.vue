@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { Emoji } from '../composables/useEmojis'
 
 const props = withDefaults(defineProps<{
@@ -12,13 +12,13 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'toggle'): void
-  (e: 'copy'): void
+  (e: 'copy', format?: 'png' | 'gif' | 'webp'): void
   (e: 'download'): void
 }>()
 
 const imageLoaded = ref(false)
 const imageError = ref(false)
-const isHovered = ref(false)
+const showFormatMenu = ref(false)
 
 // Use Vite's BASE_URL to handle both dev and production paths
 const imagePath = computed(() => {
@@ -27,23 +27,34 @@ const imagePath = computed(() => {
   return `${cleanBase}${props.emoji.path}`
 })
 
-// Truncate emotion text if too long
-const truncatedEmotion = computed(() => {
-  const text = props.emoji.emotion
-  return text.length > 20 ? text.slice(0, 19) + '…' : text
+// Get available formats count
+const formatCount = computed(() => {
+  if (!props.emoji.availableFormats) return 1
+  return props.emoji.availableFormats.length
 })
 
-// Show tooltip if text is truncated
-const showTooltip = computed(() => props.emoji.emotion.length > 20)
+// Has multiple formats
+const hasMultipleFormats = computed(() => formatCount.value > 1)
 
-// Check if formats are available
-const hasWebP = computed(() => props.emoji.formats && Array.isArray(props.emoji.formats) && props.emoji.formats.includes('webp'))
-const hasPNG = computed(() => props.emoji.formats && Array.isArray(props.emoji.formats) && props.emoji.formats.includes('png'))
-const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.formats) && props.emoji.formats.includes('gif'))
+// Close menu when clicking outside
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement
+  if (showFormatMenu.value && !target.closest('.format-dropdown')) {
+    showFormatMenu.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <template>
-  <div class="card" :class="{ selected, hovered: isHovered }" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
+  <div class="card" :class="{ selected }">
     <!-- Selection checkbox -->
     <button
       class="select-btn"
@@ -79,75 +90,77 @@ const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.f
       </div>
     </div>
 
-    <!-- Info section - two rows -->
+    <!-- Info section - single row with format badge -->
     <div class="info">
-      <!-- Row 1: Emotion name -->
-      <div class="info-row">
-        <span class="emotion" :title="showTooltip ? emoji.emotion : ''">{{ truncatedEmotion }}</span>
-      </div>
-
-      <!-- Row 2: Format labels + Quick copy buttons -->
-      <div class="info-row format-row">
-        <!-- Format label (current) -->
-        <span class="format-label" :class="emoji.format">
-          {{ emoji.format === 'webp' ? 'WebP' : emoji.format.toUpperCase() }}
-        </span>
-
-        <!-- Quick copy buttons -->
-        <div class="quick-copies">
-          <!-- Copy current format -->
-          <button
-            class="copy-btn"
-            @click.stop="emit('copy')"
-            :title="`Copy ${emoji.format === 'webp' ? 'WebP' : emoji.format.toUpperCase()} HTML`"
-            :aria-label="`Copy ${emoji.format === 'webp' ? 'WebP' : emoji.format.toUpperCase()} format as HTML`"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
-          </button>
-
-          <!-- Copy WebP if available -->
-          <button
-            v-if="hasWebP"
-            class="copy-btn"
-            @click.stop="emit('copy')"
-            title="Copy WebP HTML"
-            aria-label="Copy WebP HTML"
-          >
-            WebP
-          </button>
-
-          <!-- Copy PNG if available -->
-          <button
-            v-if="hasPNG"
-            class="copy-btn"
-            @click.stop="emit('copy')"
-            title="Copy PNG HTML"
-            aria-label="Copy PNG HTML"
-          >
-            PNG
-          </button>
-
-          <!-- Copy GIF if available -->
-          <button
-            v-if="hasGIF"
-            class="copy-btn"
-            @click.stop="emit('copy')"
-            title="Copy GIF HTML"
-            aria-label="Copy GIF HTML"
-          >
-            GIF
-          </button>
-        </div>
-      </div>
+      <span class="emotion" :title="emoji.emotion">{{ emoji.emotion }}</span>
+      <span class="format-badge" :class="emoji.format">
+        {{ emoji.format.toUpperCase() }}
+        <span v-if="hasMultipleFormats" class="format-count">+{{ formatCount - 1 }}</span>
+      </span>
     </div>
 
     <!-- Action buttons overlay -->
     <div class="actions">
-      <button class="action-btn download-btn" @click="emit('download')" title="Download" aria-label="Download">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button
+        class="action-btn"
+        @click.stop="emit('copy')"
+        :title="`Copy ${emoji.format.toUpperCase()} HTML`"
+        :aria-label="`Copy ${emoji.format.toUpperCase()} format as HTML`"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      </button>
+
+      <!-- Format dropdown for multi-format emojis -->
+      <div v-if="hasMultipleFormats" class="format-dropdown" :class="{ open: showFormatMenu }">
+        <button
+          class="format-toggle"
+          @click.stop="showFormatMenu = !showFormatMenu"
+          :aria-expanded="showFormatMenu"
+          aria-label="Select format"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        <div class="format-menu">
+          <button
+            v-if="emoji.availableFormats?.includes('webp')"
+            class="format-option"
+            @click.stop="emit('copy', 'webp'); showFormatMenu = false"
+          >
+            <span class="format-opt-label">WebP</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </button>
+          <button
+            v-if="emoji.availableFormats?.includes('png')"
+            class="format-option"
+            @click.stop="emit('copy', 'png'); showFormatMenu = false"
+          >
+            <span class="format-opt-label">PNG</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </button>
+          <button
+            v-if="emoji.availableFormats?.includes('gif')"
+            class="format-option"
+            @click.stop="emit('copy', 'gif'); showFormatMenu = false"
+          >
+            <span class="format-opt-label">GIF</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="action-btn" @click="emit('download')" title="Download" aria-label="Download">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
           <polyline points="7 10 12 15 17 10" />
           <line x1="12" y1="15" x2="12" y2="3" />
@@ -166,35 +179,29 @@ const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.f
   background: var(--color-bg-elevated);
   border: 2px solid var(--color-border);
   transition: all var(--transition-fast);
-  cursor: pointer;
   overflow: hidden;
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
   border-color: var(--color-accent);
-}
-
-.card.hovered {
-  border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 3%, transparent);
 }
 
 .card.selected {
   border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 15%, transparent);
 }
 
 /* Selection button */
 .select-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-md);
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
   border: 2px solid var(--color-border);
   background: var(--color-bg-elevated);
   display: flex;
@@ -215,7 +222,6 @@ const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.f
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: white;
-  transform: scale(1.1);
 }
 
 /* Image wrapper */
@@ -225,7 +231,7 @@ const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.f
   justify-content: center;
   padding: var(--space-md);
   background: var(--color-bg-subtle);
-  min-height: 88px;
+  min-height: 76px;
   position: relative;
 }
 
@@ -260,36 +266,21 @@ const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.f
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-md);
   background: var(--color-error-bg);
   color: var(--color-error);
 }
 
-/* Info section - two rows */
+/* Info section - compact single row */
 .info {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-md) var(--space-md);
-  min-height: 64px;
-}
-
-.info-row {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.info-row:first-child {
-  justify-content: flex-start;
-}
-
-.info-row.format-row {
   justify-content: space-between;
   gap: var(--space-xs);
+  padding: var(--space-sm);
+  min-height: 40px;
 }
 
 .emotion {
@@ -303,82 +294,66 @@ const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.f
   min-width: 0;
 }
 
-/* Format label */
-.format-label {
-  font-size: var(--font-size-xs);
+/* Format badge */
+.format-badge {
+  font-size: 10px;
   font-weight: var(--font-weight-bold);
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 3px 6px;
+  border-radius: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   flex-shrink: 0;
-}
-
-.format-label.webp { background: var(--color-webp-bg); color: var(--color-webp-text); }
-.format-label.gif { background: var(--color-gif-bg); color: var(--color-gif-text); }
-.format-label.png { background: var(--color-png-bg); color: var(--color-png-text); }
-
-/* Quick copy buttons */
-.quick-copies {
-  display: flex;
-  gap: var(--space-xs);
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.copy-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-subtle);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all var(--transition-fast);
+  gap: 2px;
 }
 
-.copy-btn:hover {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: white;
+.format-badge.webp { background: var(--color-webp-bg); color: var(--color-webp-text); }
+.format-badge.gif { background: var(--color-gif-bg); color: var(--color-gif-text); }
+.format-badge.png { background: var(--color-png-bg); color: var(--color-png-text); }
+
+.format-count {
+  font-weight: var(--font-weight-normal);
+  opacity: 0.8;
 }
 
-.copy-btn svg {
-  flex-shrink: 0;
-}
-
-/* Action buttons overlay - always show copy buttons, download on hover */
+/* Action buttons overlay - show on hover */
 .actions {
   position: absolute;
-  inset: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
-  background: color-mix(in srgb, var(--color-bg-elevated) 90%, transparent);
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  background: color-mix(in srgb, var(--color-bg-elevated) 95%, transparent);
   opacity: 0;
+  transform: translateY(8px);
   transition: all var(--transition-fast);
 }
 
-/* Show download button on card hover */
-.actions:hover .download-btn {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: white;
+.card:hover .actions {
   opacity: 1;
+  transform: translateY(0);
+}
+
+/* Always show actions on touch devices */
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 14px;
-  border-radius: var(--radius-lg);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
   background: var(--color-bg-elevated);
   color: var(--color-text-primary);
   cursor: pointer;
@@ -397,22 +372,97 @@ const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.f
   flex-shrink: 0;
 }
 
-.download-btn {
+/* Format dropdown */
+.format-dropdown {
+  position: relative;
+}
+
+.format-toggle {
+  width: 28px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.format-toggle:hover {
+  background: var(--color-bg-subtle);
   border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.format-dropdown.open .format-toggle {
   background: var(--color-accent);
+  border-color: var(--color-accent);
   color: white;
 }
 
-.download-btn:hover {
-  background: var(--color-accent-hover);
-  border-color: var(--color-accent-hover);
+.format-menu {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-xs);
+  min-width: 80px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-fast);
+  z-index: 10;
 }
 
-/* Always show actions on touch devices */
-@media (hover: none) {
-  .actions {
-    opacity: 0.85;
-  }
+.format-dropdown.open .format-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) scale(1);
+}
+
+.format-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.format-option:hover {
+  background: var(--color-bg-subtle);
+}
+
+.format-opt-label {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+}
+
+.format-option svg {
+  color: var(--color-accent);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all var(--transition-fast);
+}
+
+.format-option:hover svg {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* Responsive */
@@ -422,52 +472,47 @@ const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.f
   }
 
   .select-btn {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
 
   .image-wrapper {
     padding: var(--space-sm);
-    min-height: 72px;
+    min-height: 64px;
   }
 
   .info {
-    padding: var(--space-xs) var(--space-sm) var(--space-sm);
-    min-height: 56px;
-    gap: var(--space-xs);
+    padding: var(--space-xs);
+    min-height: 36px;
   }
 
   .emotion {
     font-size: var(--font-size-xs);
-    }
-
-  .format-label {
-    font-size: 10px;
-    padding: 2px 6px;
   }
 
-  .quick-copies {
-    gap: var(--space-xs);
-    justify-content: center;
-  }
-
-  .copy-btn {
-    padding: 4px 8px;
-    font-size: 10px;
-  }
-
-  .copy-btn svg {
-    width: 12px;
-    height: 12px;
+  .format-badge {
+    font-size: 9px;
+    padding: 2px 4px;
   }
 
   .action-btn {
-    padding: 8px 12px;
+    width: 28px;
+    height: 28px;
   }
 
   .action-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
+  }
+
+  .format-toggle {
+    width: 24px;
+    height: 28px;
+  }
+
+  .format-toggle svg {
+    width: 12px;
+    height: 12px;
   }
 }
 </style>

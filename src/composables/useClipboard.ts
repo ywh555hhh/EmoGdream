@@ -3,6 +3,7 @@ import { ref } from 'vue'
 interface CopyOptions {
   width?: number
   height?: number
+  format?: 'png' | 'gif' | 'webp'
 }
 
 // GitHub Pages URL base
@@ -37,12 +38,16 @@ export function useClipboard() {
     }
   }
 
-  const copyEmoji = async (emoji: { path: string; name: string; emotion: string; format: string }, options: CopyOptions = {}): Promise<boolean> => {
-    const { width = 16 } = options
-    // Use emoji's actual format from manifest
-    const html = `<img src="${GITHUB_BASE}${emoji.path}" alt="${emoji.name}" width="${width}" align="absmiddle">`
+  const copyEmoji = async (emoji: { path: string; name: string; emotion: string; format: string; formats?: Record<string, string> }, options: CopyOptions = {}): Promise<boolean> => {
+    const { width = 16, format } = options
+    // Use specified format path if available, otherwise use default path
+    const imagePath = format && emoji.formats?.[format]
+      ? `${GITHUB_BASE}${emoji.formats[format]}`
+      : `${GITHUB_BASE}${emoji.path}`
+    const html = `<img src="${imagePath}" alt="${emoji.name}" width="${width}" align="absmiddle">`
     const success = await copyToClipboard(html)
-    showToast(success ? 'Copied!' : 'Copy failed', success ? 'success' : 'error')
+    const formatLabel = format ? format.toUpperCase() : emoji.format.toUpperCase()
+    showToast(success ? `Copied ${formatLabel}!` : 'Copy failed', success ? 'success' : 'error')
     return success
   }
 

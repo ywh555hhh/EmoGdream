@@ -58,8 +58,8 @@ const resetFilters = () => {
   searchQuery.value = ''
 }
 
-const handleCopy = async (emoji: Emoji) => {
-  await copyEmoji(emoji, { width: size.value })
+const handleCopy = async (emoji: Emoji, format?: 'png' | 'gif' | 'webp') => {
+  await copyEmoji(emoji, { width: size.value, format })
 }
 
 const handleBatchCopy = async () => {
@@ -356,7 +356,7 @@ const hasActiveFilters = computed(() => {
         :selected="isSelected(emoji.id)"
         :size="previewSize"
         @toggle="toggleSelection(emoji.id)"
-        @copy="handleCopy(emoji)"
+        @copy="(format) => handleCopy(emoji, format)"
         @download="handleDownload(emoji)"
       />
     </div>
