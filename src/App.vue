@@ -87,52 +87,72 @@ const hasActiveFilters = computed(() => {
     <!-- Header -->
     <header class="header">
       <div class="header-content">
-        <div class="logo">
-          <span class="logo-emoji">✨</span>
-          <h1 class="title">EmoGdream</h1>
-        </div>
-        <p class="subtitle">{{ totalCount }} stickers · Select emojis, copy HTML tags for use anywhere</p>
+        <h1 class="title">
+          <span class="title-icon">✨</span>
+          EmoGdream
+        </h1>
+        <p class="subtitle">{{ totalCount }} stickers · Copy HTML tags for use anywhere</p>
       </div>
-      <!-- Help tip -->
       <div class="help-tip">
         <span class="help-icon">💡</span>
-        <span>Each sticker may have multiple formats. Use the format filter to choose your preferred format.</span>
+        <span>Each sticker may have multiple formats. Filter by format to choose.</span>
       </div>
     </header>
 
     <!-- Filters -->
     <section class="filters">
-      <div class="filter-group">
+      <!-- Search -->
+      <div class="search-wrapper">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search stickers..."
+          placeholder="Search by character or emotion..."
           class="search-input"
+          aria-label="Search stickers"
         />
+        <button
+          v-if="searchQuery"
+          @click="searchQuery = ''"
+          class="clear-search"
+          aria-label="Clear search"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
 
-      <div class="filter-row">
-        <div class="filter-select">
-          <select v-model="selectedCharacter">
-            <option value="all">All Characters</option>
+      <!-- Filters row -->
+      <div class="filters-row">
+        <div class="filter-group">
+          <label class="filter-label">Character</label>
+          <select v-model="selectedCharacter" class="filter-select">
+            <option value="all">All</option>
             <option v-for="char in characters" :key="char.id" :value="char.id">
               {{ char.name }}
             </option>
           </select>
         </div>
 
-        <div class="filter-select">
-          <select v-model="selectedFormat" @change="selectedEmotion = 'all'">
-            <option value="all">All Formats ({{ totalCount }})</option>
+        <div class="filter-group">
+          <label class="filter-label">Format</label>
+          <select v-model="selectedFormat" @change="selectedEmotion = 'all'" class="filter-select">
+            <option value="all">All ({{ totalCount }})</option>
             <option value="png">PNG ({{ formatCounts.png }})</option>
             <option value="gif">GIF ({{ formatCounts.gif }})</option>
             <option value="webp">WebP ({{ formatCounts.webp }})</option>
           </select>
         </div>
 
-        <div class="filter-select">
-          <select v-model="selectedEmotion" :disabled="availableEmotions.length === 0">
-            <option value="all">All Emotions</option>
+        <div class="filter-group">
+          <label class="filter-label">Emotion</label>
+          <select v-model="selectedEmotion" :disabled="availableEmotions.length === 0" class="filter-select">
+            <option value="all">All</option>
             <option v-for="emo in availableEmotions" :key="emo" :value="emo">
               {{ emo }}
             </option>
@@ -140,15 +160,18 @@ const hasActiveFilters = computed(() => {
         </div>
       </div>
 
-      <div class="filter-row">
+      <!-- Size selector and actions -->
+      <div class="toolbar">
         <div class="size-selector">
-          <span class="size-label">Copy size:</span>
+          <label class="size-label">Copy size: {{ size }}px</label>
           <div class="size-buttons">
             <button
               v-for="s in sizes"
               :key="s"
               :class="{ active: !isCustom && size === s }"
               @click="setSize(s)"
+              aria-label="Set size to {{ s }}px"
+              :aria-pressed="!isCustom && size === s"
             >
               {{ s }}
             </button>
@@ -161,6 +184,7 @@ const hasActiveFilters = computed(() => {
               max="128"
               class="custom-size-input"
               :class="{ active: isCustom }"
+              aria-label="Custom size"
             />
           </div>
         </div>
@@ -169,19 +193,31 @@ const hasActiveFilters = computed(() => {
           v-if="hasActiveFilters"
           @click="resetFilters"
           class="reset-btn"
+          aria-label="Clear all filters"
         >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
           Clear filters
         </button>
       </div>
 
       <!-- Batch actions -->
-      <div v-if="filteredEmojis.length > 0" class="batch-actions">
-        <span class="selected-count">{{ selectedCount }} selected</span>
+      <div v-if="filteredEmojis.length > 0" class="batch-bar">
+        <span class="selected-info">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 0-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          {{ selectedCount }} selected
+        </span>
         <div class="batch-buttons">
           <button
             @click="selectAll(filteredEmojis)"
             :disabled="allSelected(filteredEmojis)"
             class="batch-btn"
+            aria-label="Select all"
           >
             All
           </button>
@@ -189,6 +225,7 @@ const hasActiveFilters = computed(() => {
             @click="selectNone"
             :disabled="selectedCount === 0"
             class="batch-btn"
+            aria-label="Select none"
           >
             None
           </button>
@@ -196,15 +233,26 @@ const hasActiveFilters = computed(() => {
             @click="handleBatchCopy"
             :disabled="selectedCount === 0"
             class="batch-btn primary"
+            aria-label="Copy selected"
           >
-            Copy {{ selectedCount }}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            Copy
           </button>
           <button
             @click="handleBatchDownload"
             :disabled="selectedCount === 0"
             class="batch-btn primary"
+            aria-label="Download selected"
           >
-            Download {{ selectedCount }}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download
           </button>
         </div>
       </div>
@@ -252,6 +300,8 @@ const hasActiveFilters = computed(() => {
         v-if="copyToast.show || downloadToast.show"
         class="toast"
         :class="{ error: (copyToast.show && copyToast.type === 'error') || (downloadToast.show && downloadToast.type === 'error') }"
+        role="alert"
+        aria-live="polite"
       >
         {{ copyToast.show ? copyToast.message : downloadToast.message }}
       </div>
@@ -262,250 +312,319 @@ const hasActiveFilters = computed(() => {
 <style scoped>
 .app {
   min-height: 100vh;
-  background: #f5f5f7;
-  padding: 20px;
+  background: var(--color-bg);
+  padding: var(--space-lg);
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
+/* ========== Header ========== */
 .header {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .header-content {
   text-align: center;
 }
 
-.logo {
+.title {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-}
-
-.logo-emoji {
-  font-size: 24px;
-}
-
-.title {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0;
+  gap: var(--space-sm);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--space-xs) 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+.title-icon {
+  font-size: var(--font-size-3xl);
+}
+
 .subtitle {
-  font-size: 14px;
-  color: #86868b;
-  margin: 4px 0 16px 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  margin: 0;
 }
 
 .help-tip {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #f0f9ff;
-  border-radius: 10px;
-  font-size: 13px;
-  color: #0369a1;
-  margin-top: 16px;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
 }
 
 .help-icon {
-  font-size: 16px;
+  font-size: var(--font-size-lg);
 }
 
+/* ========== Filters ========== */
 .filters {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-sm);
 }
 
-.filter-group {
-  margin-bottom: 16px;
+/* Search */
+.search-wrapper {
+  position: relative;
+  margin-bottom: var(--space-lg);
 }
 
-.filter-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
+.search-icon {
+  position: absolute;
+  left: var(--space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e5e5ea;
-  border-radius: 10px;
-  font-size: 15px;
-  background: #f5f5f7;
-  transition: all 0.15s ease;
+  padding: 12px 40px 12px 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-lg);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-tertiary);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #007aff;
-  background: white;
+  border-color: var(--color-accent);
+  background: var(--color-bg-elevated);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 15%, transparent);
+}
+
+.clear-search {
+  position: absolute;
+  right: var(--space-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: var(--space-xs);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.clear-search:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+/* Filters row */
+.filters-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.filter-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
 }
 
 .filter-select {
-  flex: 1;
-  min-width: 140px;
-}
-
-.filter-select select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #e5e5ea;
-  border-radius: 10px;
-  font-size: 14px;
-  background: #f5f5f7;
+  padding: 10px var(--space-md);
+  padding-right: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-lg);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-primary);
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
+  background-position: right var(--space-sm) center;
+  transition: all var(--transition-fast);
 }
 
-.filter-select select:focus {
+.filter-select:focus {
   outline: none;
-  border-color: #007aff;
-  background-color: white;
+  border-color: var(--color-accent);
+  background: var(--color-bg-elevated);
 }
 
-.filter-select select:disabled {
+.filter-select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
 }
 
 .size-selector {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-md);
+  flex-wrap: wrap;
 }
 
 .size-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1d1d1f;
-  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
 }
 
 .size-buttons {
   display: flex;
-  gap: 4px;
-  background: #f5f5f7;
-  padding: 4px;
-  border-radius: 8px;
+  gap: var(--space-xs);
+  background: var(--color-bg-subtle);
+  padding: var(--space-xs);
+  border-radius: var(--radius-md);
 }
 
 .size-buttons button {
-  padding: 6px 14px;
+  padding: 6px 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  font-size: 13px;
-  font-weight: 500;
-  color: #86868b;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
 }
 
 .size-buttons button.active {
-  background: white;
-  color: #007aff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  background: var(--color-bg-elevated);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-xs);
 }
 
 .custom-size-input {
-  width: 60px;
-  padding: 6px 8px;
+  width: 48px;
+  padding: 6px var(--space-sm);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  font-size: 13px;
-  font-weight: 500;
-  color: #86868b;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
   text-align: center;
 }
 
 .custom-size-input:focus {
   outline: none;
-  background: white;
-  color: #007aff;
+  background: var(--color-bg-elevated);
+  color: var(--color-accent);
 }
 
 .custom-size-input.active {
-  background: white;
-  color: #007aff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.custom-size-input::placeholder {
-  color: #86868b;
+  background: var(--color-bg-elevated);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-xs);
 }
 
 .reset-btn {
-  margin-left: auto;
-  padding: 10px 16px;
-  border: 1px solid #e5e5ea;
-  border-radius: 10px;
-  background: white;
-  font-size: 14px;
-  font-weight: 500;
-  color: #007aff;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 8px var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
 }
 
 .reset-btn:hover {
-  background: #f5f5f7;
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border-hover);
 }
 
-.batch-actions {
+/* Batch actions */
+.batch-bar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid #e5e5ea;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+  margin-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
 }
 
-.selected-count {
-  font-size: 14px;
-  font-weight: 600;
-  color: #007aff;
+.selected-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-accent);
 }
 
 .batch-buttons {
   display: flex;
-  gap: 8px;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
 }
 
 .batch-btn {
-  padding: 8px 14px;
-  border: 1px solid #e5e5ea;
-  border-radius: 8px;
-  background: white;
-  font-size: 13px;
-  font-weight: 500;
-  color: #1d1d1f;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 8px var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
 }
 
 .batch-btn:hover:not(:disabled) {
-  background: #f5f5f7;
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border-hover);
 }
 
 .batch-btn:disabled {
@@ -514,122 +633,128 @@ const hasActiveFilters = computed(() => {
 }
 
 .batch-btn.primary {
-  background: #007aff;
-  border-color: #007aff;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
   color: white;
 }
 
 .batch-btn.primary:hover:not(:disabled) {
-  background: #0066d6;
+  background: var(--color-accent-hover);
 }
 
+/* Results info */
 .results-info {
   display: flex;
   align-items: baseline;
-  gap: 4px;
-  margin-bottom: 16px;
-  color: #86868b;
-  font-size: 14px;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
 }
 
 .results-info .count {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1d1d1f;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
 }
 
+/* Loading */
 .loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #86868b;
+  color: var(--color-text-secondary);
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e5e5ea;
-  border-top-color: #007aff;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-md);
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
+/* Empty state */
 .empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #86868b;
+  text-align: center;
 }
 
 .empty-icon {
   font-size: 48px;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-md);
 }
 
 .empty p {
-  margin: 0 0 8px 0;
-  font-size: 16px;
+  margin: 0 0 var(--space-sm) 0;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-secondary);
 }
 
 .empty-hint {
-  margin: 0 0 16px 0;
-  font-size: 14px;
-  color: #86868b;
+  margin: 0 0 var(--space-lg) 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-tertiary);
 }
 
 .btn {
-  padding: 10px 20px;
-  border: 1px solid #e5e5ea;
-  border-radius: 10px;
-  background: white;
-  font-size: 14px;
-  font-weight: 500;
-  color: #007aff;
+  padding: 10px var(--space-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-accent);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
 }
 
 .btn:hover {
-  background: #f5f5f7;
+  background: var(--color-bg-subtle);
 }
 
+/* Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width), 1fr));
+  gap: var(--grid-gap);
 }
 
+/* Toast */
 .toast {
   position: fixed;
-  bottom: 24px;
+  bottom: var(--space-lg);
   left: 50%;
   transform: translateX(-50%);
-  padding: 12px 24px;
-  background: #34c759;
+  padding: 12px var(--space-xl);
+  background: var(--color-success);
   color: white;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 500;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-toast);
 }
 
 .toast.error {
-  background: #ff3b30;
+  background: var(--color-error);
 }
 
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
 }
 
 .toast-enter-from,
@@ -638,148 +763,121 @@ const hasActiveFilters = computed(() => {
   transform: translateX(-50%) translateY(20px);
 }
 
-@media (max-width: 768px) {
+/* ========== Responsive ========== */
+@media (max-width: 1024px) {
   .app {
-    padding: 12px;
+    padding: var(--space-md);
   }
 
   .header {
-    padding: 20px 16px;
+    padding: var(--space-lg);
   }
 
   .title {
-    font-size: 24px;
+    font-size: var(--font-size-3xl);
   }
 
   .filters {
-    padding: 16px;
+    padding: var(--space-md);
   }
 
-  .filter-row {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 640px) {
+  .app {
+    padding: var(--space-sm);
+  }
+
+  .header {
+    padding: var(--space-md);
+  }
+
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .title-icon {
+    font-size: var(--font-size-2xl);
+  }
+
+  .subtitle {
+    font-size: var(--font-size-md);
+  }
+
+  .filters {
+    padding: var(--space-md);
+  }
+
+  .search-wrapper {
+    margin-bottom: var(--space-md);
+  }
+
+  .search-input {
+    padding: 10px 36px 10px 36px;
+    font-size: var(--font-size-md);
+  }
+
+  .filters-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+
+  .toolbar {
     flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-sm);
   }
 
   .size-selector {
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
   }
 
-  .batch-actions {
+  .size-buttons {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .batch-bar {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: var(--space-sm);
   }
 
   .batch-buttons {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
   }
 
   .batch-btn {
     flex: 1;
     min-width: 80px;
+    justify-content: center;
+  }
+
+  .results-info {
+    font-size: var(--font-size-md);
+  }
+
+  .results-info .count {
+    font-size: var(--font-size-2xl);
   }
 
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .app {
-    background: #000;
-  }
-
-  .header,
-  .filters {
-    background: #1c1c1e;
-  }
-
-  .title {
-    background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .subtitle,
-  .loading p,
-  .empty p,
-  .results-info {
-    color: #86868b;
-  }
-
-  .help-tip {
-    background: #0c4a6e;
-    color: #7dd3fc;
-  }
-
-  .empty-hint {
-    color: #86868b;
-  }
-
-  .search-input,
-  .filter-select select,
-  .reset-btn,
-  .batch-btn,
-  .btn {
-    background: #2c2c2e;
-    border-color: #3a3a3c;
-    color: #f5f5f7;
-  }
-
-  .search-input:focus,
-  .filter-select select:focus {
-    background: #3a3a3c;
-    border-color: #0a84ff;
-  }
-
-  .size-label,
-  .results-info .count {
-    color: #f5f5f7;
-  }
-
-  .size-buttons {
-    background: #2c2c2e;
-  }
-
-  .size-buttons button {
-    color: #86868b;
-  }
-
-  .size-buttons button.active {
-    background: #3a3a3c;
-    color: #0a84ff;
-  }
-
-  .custom-size-input {
-    color: #86868b;
-  }
-
-  .custom-size-input:focus {
-    background: #3a3a3c;
-    color: #0a84ff;
-  }
-
-  .custom-size-input.active {
-    background: #3a3a3c;
-    color: #0a84ff;
-  }
-
-  .batch-btn.primary {
-    background: #0a84ff;
-    border-color: #0a84ff;
-  }
-
-  .batch-btn.primary:hover:not(:disabled) {
-    background: #0066d6;
-  }
-
-  .batch-actions {
-    border-top-color: #3a3a3c;
-  }
-
-  .selected-count {
-    color: #0a84ff;
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xs);
   }
 }
 </style>
