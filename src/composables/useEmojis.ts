@@ -19,6 +19,7 @@ export interface Emoji {
   character: string
   path: string
   availableFormats?: ('png' | 'gif' | 'webp')[]
+  formats?: Record<'png' | 'gif' | 'webp', string>  // Store all format paths
 }
 
 const CHARACTER_NAMES: Record<string, string> = {
@@ -80,6 +81,12 @@ function getBestStickers(allStickers: Sticker[]): Emoji[] {
 
     const availableFormats = stickerList.map(s => s.format) as ('png' | 'gif' | 'webp')[]
 
+    // Store all format paths for later use
+    const formats: Record<'png' | 'gif' | 'webp', string> = { png: '', gif: '', webp: '' }
+    for (const sticker of stickerList) {
+      formats[sticker.format] = sticker.path
+    }
+
     bestStickers.push({
       id: best.id,
       name: best.name,
@@ -87,7 +94,8 @@ function getBestStickers(allStickers: Sticker[]): Emoji[] {
       format: best.format,
       character: best.character,
       path: best.path,
-      availableFormats
+      availableFormats,
+      formats
     })
   }
 
@@ -113,6 +121,50 @@ export function useEmojis() {
   const totalCount = computed(() => emojis.value.length)
   const filteredCount = computed(() => emojis.value.length)
 
+  // Get the correct path based on the selected format preference
+  // If the selected format is available, use it; otherwise use the best available format
+  const getPathByFormat = (emoji: Emoji, preferredFormat?: 'png' | 'gif' | 'webp'): string => {
+    if (preferredFormat && emoji.formats && emoji.formats[preferredFormat]) {
+      return emoji.formats[preferredFormat]
+    }
+    return emoji.path  // Default to best format
+  }
+
+  // Get the display format based on current selection
+  const getDisplayFormat = (emoji: Emoji, selectedFormat: 'all' | 'png' | 'gif' | 'webp'): 'png' | 'gif' | 'webp' => {
+    if (selectedFormat !== 'all' && emoji.availableFormats?.includes(selectedFormat)) {
+      return selectedFormat
+    }
+    return emoji.format  // Default to best format
+  }
+
+  // Get filtered emojis with correct format paths
+  const getFilteredEmojis = (
+    selectedCharacter: string,
+    selectedFormat: 'all' | 'png' | 'gif' | 'webp',
+    selectedEmotion: string,
+    searchQuery: string
+  ): Emoji[] => {
+    return emojis.value.filter(emoji => {
+      const charMatch = selectedCharacter === 'all' || emoji.character === selectedCharacter
+      // Match if emoji has the selected format (not if it IS the selected format)
+      const formatMatch = selectedFormat === 'all' || emoji.availableFormats?.includes(selectedFormat)
+      const emotionMatch = selectedEmotion === 'all' || emoji.emotion === selectedEmotion
+      const searchMatch = !searchQuery ||
+        emoji.emotion.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        emoji.character.toLowerCase().includes(searchQuery.toLowerCase())
+      return charMatch && formatMatch && emotionMatch && searchMatch
+    }).map(emoji => {
+      // For display, adjust the format to match the selection
+      const displayFormat = getDisplayFormat(emoji, selectedFormat)
+      return {
+        ...emoji,
+        format: displayFormat,
+        path: getPathByFormat(emoji, displayFormat)
+      }
+    })
+  }
+
   return {
     emojis,
     characters,
@@ -120,6 +172,9 @@ export function useEmojis() {
     totalCount,
     filteredCount,
     loading,
-    refresh: () => {}
+    refresh: () => {},
+    getPathByFormat,
+    getDisplayFormat,
+    getFilteredEmojis
   }
 }

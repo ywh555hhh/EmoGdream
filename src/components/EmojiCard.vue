@@ -58,6 +58,10 @@ const imagePath = computed(() => {
     <div class="info">
       <span class="format" :class="emoji.format">{{ emoji.format }}</span>
       <span class="emotion">{{ emoji.emotion }}</span>
+      <!-- Multi-format indicator -->
+      <span v-if="emoji.availableFormats && emoji.availableFormats.length > 1" class="multi-format" title="Multiple formats available">
+        <span v-for="f in emoji.availableFormats" :key="f" class="format-dot" :class="f">{{ f.toUpperCase() }}</span>
+      </span>
     </div>
 
     <div class="actions">
@@ -171,6 +175,25 @@ const imagePath = computed(() => {
   white-space: nowrap;
 }
 
+.multi-format {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.format-dot {
+  font-size: 8px;
+  font-weight: 600;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: #e5e5ea;
+  color: #86868b;
+}
+
+.format-dot.png { background: #e0f2fe; color: #0284c7; }
+.format-dot.gif { background: #fef3c7; color: #d97706; }
+.format-dot.webp { background: #fce7f3; color: #db2777; }
+
 .actions {
   display: flex;
   padding: 8px 12px 12px;
@@ -228,6 +251,15 @@ const imagePath = computed(() => {
   .emotion {
     color: #f5f5f7;
   }
+
+  .format-dot {
+    background: #3a3a3c;
+    color: #86868b;
+  }
+
+  .format-dot.png { background: #0c4a6e; color: #7dd3fc; }
+  .format-dot.gif { background: #78350f; color: #fcd34d; }
+  .format-dot.webp { background: #831843; color: #f9a8d4; }
 
   .action-btn {
     background: #3a3a3c;

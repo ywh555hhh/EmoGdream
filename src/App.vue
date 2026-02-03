@@ -7,7 +7,7 @@ import { useClipboard } from './composables/useClipboard'
 import { useDownload } from './composables/useDownload'
 import EmojiCard from './components/EmojiCard.vue'
 
-const { emojis, characters, emotions, totalCount, loading } = useEmojis()
+const { emojis, characters, emotions, totalCount, loading, getFilteredEmojis } = useEmojis()
 const { size, sizes, setSize, setCustomSize, isCustom, customSize } = useSizeControl()
 const { selectedCount, toggleSelection, selectAll, selectNone, isSelected, allSelected, getSelectedEmojis } = useBatchSelection()
 const { toast: copyToast, copyEmoji, copyMultiple } = useClipboard()
@@ -21,21 +21,28 @@ const selectedFormat = ref<'all' | 'png' | 'gif' | 'webp'>('all')
 const selectedEmotion = ref<string>('all')
 const searchQuery = ref<string>('')
 
+// Use the new filtering logic that returns emojis with correct format paths
 const filteredEmojis = computed(() => {
-  return emojis.value.filter(emoji => {
-    const charMatch = selectedCharacter.value === 'all' || emoji.character === selectedCharacter.value
-    const formatMatch = selectedFormat.value === 'all' || emoji.format === selectedFormat.value
-    const emotionMatch = selectedEmotion.value === 'all' || emoji.emotion === selectedEmotion.value
-    const searchMatch = !searchQuery.value ||
-      emoji.emotion.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      emoji.character.toLowerCase().includes(searchQuery.value.toLowerCase())
-    return charMatch && formatMatch && emotionMatch && searchMatch
-  })
+  return getFilteredEmojis(selectedCharacter.value, selectedFormat.value, selectedEmotion.value, searchQuery.value)
 })
 
+// Get unique emotions from the current filtered results
 const availableEmotions = computed(() => {
   const set = new Set(filteredEmojis.value.map(e => e.emotion))
   return Array.from(set).sort()
+})
+
+// Format selector helper - shows count for each format
+const formatCounts = computed(() => {
+  const counts = { png: 0, gif: 0, webp: 0 }
+  emojis.value.forEach(e => {
+    if (e.availableFormats) {
+      e.availableFormats.forEach(f => counts[f]++)
+    } else {
+      counts[e.format]++
+    }
+  })
+  return counts
 })
 
 const filteredCount = computed(() => filteredEmojis.value.length)
@@ -84,7 +91,12 @@ const hasActiveFilters = computed(() => {
           <span class="logo-emoji">✨</span>
           <h1 class="title">EmoGdream</h1>
         </div>
-        <p class="subtitle">{{ totalCount }} stickers</p>
+        <p class="subtitle">{{ totalCount }} stickers · Select emojis, copy HTML tags for use anywhere</p>
+      </div>
+      <!-- Help tip -->
+      <div class="help-tip">
+        <span class="help-icon">💡</span>
+        <span>Each sticker may have multiple formats. Use the format filter to choose your preferred format.</span>
       </div>
     </header>
 
@@ -111,10 +123,10 @@ const hasActiveFilters = computed(() => {
 
         <div class="filter-select">
           <select v-model="selectedFormat" @change="selectedEmotion = 'all'">
-            <option value="all">All Formats</option>
-            <option value="png">PNG</option>
-            <option value="gif">GIF</option>
-            <option value="webp">WebP</option>
+            <option value="all">All Formats ({{ totalCount }})</option>
+            <option value="png">PNG ({{ formatCounts.png }})</option>
+            <option value="gif">GIF ({{ formatCounts.gif }})</option>
+            <option value="webp">WebP ({{ formatCounts.webp }})</option>
           </select>
         </div>
 
@@ -214,6 +226,9 @@ const hasActiveFilters = computed(() => {
     <div v-else-if="filteredEmojis.length === 0" class="empty">
       <span class="empty-icon">🔍</span>
       <p>No stickers found</p>
+      <p v-if="selectedFormat !== 'all'" class="empty-hint">Try selecting "All Formats" or a different format</p>
+      <p v-else-if="hasActiveFilters" class="empty-hint">Try clearing filters or using broader search terms</p>
+      <p v-else class="empty-hint">Browse all stickers by selecting a character or emotion</p>
       <button v-if="hasActiveFilters" @click="resetFilters" class="btn">Clear filters</button>
     </div>
 
@@ -287,7 +302,23 @@ const hasActiveFilters = computed(() => {
 .subtitle {
   font-size: 14px;
   color: #86868b;
-  margin: 4px 0 0 0;
+  margin: 4px 0 16px 0;
+}
+
+.help-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f0f9ff;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #0369a1;
+  margin-top: 16px;
+}
+
+.help-icon {
+  font-size: 16px;
 }
 
 .filters {
@@ -545,8 +576,14 @@ const hasActiveFilters = computed(() => {
 }
 
 .empty p {
-  margin: 0 0 16px 0;
+  margin: 0 0 8px 0;
   font-size: 16px;
+}
+
+.empty-hint {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: #86868b;
 }
 
 .btn {
@@ -668,6 +705,15 @@ const hasActiveFilters = computed(() => {
   .loading p,
   .empty p,
   .results-info {
+    color: #86868b;
+  }
+
+  .help-tip {
+    background: #0c4a6e;
+    color: #7dd3fc;
+  }
+
+  .empty-hint {
     color: #86868b;
   }
 
