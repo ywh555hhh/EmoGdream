@@ -30,11 +30,16 @@ const imagePath = computed(() => {
 // Truncate emotion text if too long
 const truncatedEmotion = computed(() => {
   const text = props.emoji.emotion
-  return text.length > 18 ? text.slice(0, 17) + '…' : text
+  return text.length > 20 ? text.slice(0, 19) + '…' : text
 })
 
 // Show tooltip if text is truncated
-const showTooltip = computed(() => props.emoji.emotion.length > 18)
+const showTooltip = computed(() => props.emoji.emotion.length > 20)
+
+// Check if formats are available
+const hasWebP = computed(() => props.emoji.formats && Array.isArray(props.emoji.formats) && props.emoji.formats.includes('webp'))
+const hasPNG = computed(() => props.emoji.formats && Array.isArray(props.emoji.formats) && props.emoji.formats.includes('png'))
+const hasGIF = computed(() => props.emoji.formats && Array.isArray(props.emoji.formats) && props.emoji.formats.includes('gif'))
 </script>
 
 <template>
@@ -74,49 +79,79 @@ const showTooltip = computed(() => props.emoji.emotion.length > 18)
       </div>
     </div>
 
-    <!-- Info section - centered labels -->
+    <!-- Info section - two rows -->
     <div class="info">
-      <!-- Emotion label -->
-      <span class="emotion" :title="showTooltip ? emoji.emotion : ''">{{ truncatedEmotion }}</span>
+      <!-- Row 1: Emotion name -->
+      <div class="info-row">
+        <span class="emotion" :title="showTooltip ? emoji.emotion : ''">{{ truncatedEmotion }}</span>
+      </div>
 
-      <!-- Format labels -->
-      <div class="formats">
-        <!-- Single format -->
-        <span v-if="!emoji.availableFormats || emoji.availableFormats.length === 1" class="format-label" :class="emoji.format">
+      <!-- Row 2: Format labels + Quick copy buttons -->
+      <div class="info-row format-row">
+        <!-- Format label (current) -->
+        <span class="format-label" :class="emoji.format">
           {{ emoji.format === 'webp' ? 'WebP' : emoji.format.toUpperCase() }}
         </span>
 
-        <!-- Multiple formats - show all available -->
-        <div v-else class="multi-formats">
-          <span
-            v-for="fmt in ['webp', 'png', 'gif']"
-            :key="fmt"
-            v-show="emoji.availableFormats?.includes(fmt as any)"
-            class="format-pill"
-            :class="{ current: fmt === emoji.format }"
+        <!-- Quick copy buttons -->
+        <div class="quick-copies">
+          <!-- Copy current format -->
+          <button
+            class="copy-btn"
+            @click.stop="emit('copy')"
+            :title="`Copy ${emoji.format === 'webp' ? 'WebP' : emoji.format.toUpperCase()} HTML`"
+            :aria-label="`Copy ${emoji.format === 'webp' ? 'WebP' : emoji.format.toUpperCase()} format as HTML`"
           >
-            {{ fmt === 'webp' ? 'WebP' : fmt.toUpperCase() }}
-          </span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </button>
+
+          <!-- Copy WebP if available -->
+          <button
+            v-if="hasWebP"
+            class="copy-btn"
+            @click.stop="emit('copy')"
+            title="Copy WebP HTML"
+            aria-label="Copy WebP HTML"
+          >
+            WebP
+          </button>
+
+          <!-- Copy PNG if available -->
+          <button
+            v-if="hasPNG"
+            class="copy-btn"
+            @click.stop="emit('copy')"
+            title="Copy PNG HTML"
+            aria-label="Copy PNG HTML"
+          >
+            PNG
+          </button>
+
+          <!-- Copy GIF if available -->
+          <button
+            v-if="hasGIF"
+            class="copy-btn"
+            @click.stop="emit('copy')"
+            title="Copy GIF HTML"
+            aria-label="Copy GIF HTML"
+          >
+            GIF
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Action buttons overlay -->
     <div class="actions">
-      <button class="action-btn" @click="emit('copy')" title="Copy HTML" aria-label="Copy HTML">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="9" y="9" width="13" height="13" rx="2" />
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-        </svg>
-        <span>Copy</span>
-      </button>
-      <button class="action-btn" @click="emit('download')" title="Download" aria-label="Download">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button class="action-btn download-btn" @click="emit('download')" title="Download" aria-label="Download">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
           <polyline points="7 10 12 15 17 10" />
           <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
-        <span>Save</span>
       </button>
     </div>
   </div>
@@ -136,7 +171,7 @@ const showTooltip = computed(() => props.emoji.emotion.length > 18)
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-lg);
   border-color: var(--color-accent);
 }
@@ -157,8 +192,8 @@ const showTooltip = computed(() => props.emoji.emotion.length > 18)
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: var(--radius-md);
   border: 2px solid var(--color-border);
   background: var(--color-bg-elevated);
@@ -232,14 +267,29 @@ const showTooltip = computed(() => props.emoji.emotion.length > 18)
   color: var(--color-error);
 }
 
-/* Info section - centered layout */
+/* Info section - two rows */
 .info {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-xs);
-  padding: var(--space-sm);
-  min-height: 52px;
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+  min-height: 64px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.info-row:first-child {
+  justify-content: flex-start;
+}
+
+.info-row.format-row {
+  justify-content: space-between;
+  gap: var(--space-xs);
 }
 
 .emotion {
@@ -249,55 +299,56 @@ const showTooltip = computed(() => props.emoji.emotion.length > 18)
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
+  flex: 1;
+  min-width: 0;
 }
 
-/* Format labels container */
-.formats {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-/* Single format label */
+/* Format label */
 .format-label {
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   padding: 3px 8px;
   border-radius: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  flex-shrink: 0;
 }
 
 .format-label.webp { background: var(--color-webp-bg); color: var(--color-webp-text); }
 .format-label.gif { background: var(--color-gif-bg); color: var(--color-gif-text); }
 .format-label.png { background: var(--color-png-bg); color: var(--color-png-text); }
 
-/* Multiple formats pills */
-.multi-formats {
+/* Quick copy buttons */
+.quick-copies {
   display: flex;
-  align-items: center;
-  gap: 3px;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.format-pill {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  padding: 3px 6px;
-  border-radius: 6px;
-  border: 1.5px solid var(--color-border);
+.copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
   background: var(--color-bg-subtle);
   color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.format-pill.current {
+.copy-btn:hover {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: white;
-  box-shadow: var(--shadow-xs);
+}
+
+.copy-btn svg {
+  flex-shrink: 0;
 }
 
 /* Action buttons overlay */
@@ -320,10 +371,10 @@ const showTooltip = computed(() => props.emoji.emotion.length > 18)
 
 .action-btn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px var(--space-sm);
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
   border-radius: var(--radius-lg);
   background: var(--color-bg-elevated);
   color: var(--color-text-primary);
@@ -343,15 +394,21 @@ const showTooltip = computed(() => props.emoji.emotion.length > 18)
   flex-shrink: 0;
 }
 
-.action-btn span {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+.download-btn {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: white;
+}
+
+.download-btn:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
 }
 
 /* Always show actions on touch devices */
 @media (hover: none) {
   .actions {
-    opacity: 0.9;
+    opacity: 0.85;
   }
 }
 
@@ -362,8 +419,8 @@ const showTooltip = computed(() => props.emoji.emotion.length > 18)
   }
 
   .select-btn {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
   }
 
   .image-wrapper {
@@ -372,31 +429,42 @@ const showTooltip = computed(() => props.emoji.emotion.length > 18)
   }
 
   .info {
-    padding: var(--space-xs) var(--space-xs) var(--space-xs);
-    min-height: 48px;
-    gap: 4px;
+    padding: var(--space-xs) var(--space-sm) var(--space-sm);
+    min-height: 56px;
+    gap: var(--space-xs);
   }
 
   .emotion {
     font-size: var(--font-size-xs);
+    }
+
+  .format-label {
+    font-size: 10px;
+    padding: 2px 6px;
   }
 
-  .format-label,
-  .format-pill {
-    font-size: 9px;
-    padding: 2px 5px;
+  .quick-copies {
+    gap: var(--space-xs);
+    justify-content: center;
   }
 
-  .format-pill {
-    padding: 2px 4px;
+  .copy-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .copy-btn svg {
+    width: 12px;
+    height: 12px;
   }
 
   .action-btn {
-    padding: 6px var(--space-xs);
+    padding: 8px 12px;
   }
 
-  .action-btn span {
-    font-size: 9px;
+  .action-btn svg {
+    width: 16px;
+    height: 16px;
   }
 }
 </style>
