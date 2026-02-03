@@ -18,6 +18,7 @@ const emit = defineEmits<{
 
 const imageLoaded = ref(false)
 const imageError = ref(false)
+const isHovered = ref(false)
 
 // Use Vite's BASE_URL to handle both dev and production paths
 const imagePath = computed(() => {
@@ -29,15 +30,54 @@ const imagePath = computed(() => {
 // Truncate emotion text if too long
 const truncatedEmotion = computed(() => {
   const text = props.emoji.emotion
-  return text.length > 15 ? text.slice(0, 14) + '…' : text
+  return text.length > 16 ? text.slice(0, 15) + '…' : text
 })
 
 // Show tooltip if text is truncated
-const showTooltip = computed(() => props.emoji.emotion.length > 15)
+const showTooltip = computed(() => props.emoji.emotion.length > 16)
+
+// Get character name from emoji
+const characterName = computed(() => {
+  const nameMap: Record<string, string> = {
+    nina: 'Nina',
+    nijika: 'Nijika',
+    tomori: 'Tomori',
+    momoka: 'Momoka',
+    subaru: 'Subaru',
+    hitori: 'Hitori',
+    ikuyo: 'Ikuyo',
+    soyo: 'Soyo',
+    taki: 'Taki',
+    tomo: 'Tomo',
+    rupa: 'Rupa',
+    sakiko: 'Sakiko',
+    ryo: 'Ryo',
+    uika: 'Uika',
+    nyamu: 'Nyamu',
+    mutsumi: 'Mutsumi',
+    raana: 'Raana',
+    umiri: 'Umiri',
+    gbc: 'GBC',
+    anon: 'Anon',
+    KB: 'KB',
+    mana: 'Mana'
+  }
+  return nameMap[props.emoji.character] || props.emoji.character
+})
+
+// Get display format text
+const formatLabel = computed(() => {
+  const labels: Record<string, string> = {
+    webp: 'WebP',
+    png: 'PNG',
+    gif: 'GIF'
+  }
+  return labels[props.emoji.format] || props.emoji.format.toUpperCase()
+})
 </script>
 
 <template>
-  <div class="card" :class="{ selected }">
+  <div class="card" :class="{ selected, hovered: isHovered }" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
     <!-- Selection checkbox -->
     <button
       class="select-btn"
@@ -65,38 +105,47 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
         :class="{ loaded: imageLoaded }"
       />
       <div v-if="!imageLoaded && !imageError" class="skeleton" :style="{ width: `${size}px`, height: `${size}px` }" />
-      <span v-else-if="imageError" class="error-badge" :aria-label="'Failed to load'">✕</span>
+      <div v-else-if="imageError" class="error-badge" aria-label="Failed to load">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </div>
     </div>
 
     <!-- Info section -->
     <div class="info">
-      <div class="info-left">
-        <span class="format" :class="emoji.format">{{ emoji.format.toUpperCase() }}</span>
+      <div class="info-main">
+        <span class="format" :class="emoji.format">
+          {{ formatLabel }}
+        </span>
         <span class="emotion" :title="showTooltip ? emoji.emotion : ''">{{ truncatedEmotion }}</span>
       </div>
 
       <!-- Multi-format indicator -->
-      <span v-if="emoji.availableFormats && emoji.availableFormats.length > 1" class="multi-badges" title="Multiple formats available">
+      <div v-if="emoji.availableFormats && emoji.availableFormats.length > 1" class="multi-badges" title="Multiple formats available">
         <span v-for="f in emoji.availableFormats" :key="f" class="format-dot" :class="{ current: f === emoji.format }">
           {{ f.toUpperCase() }}
         </span>
-      </span>
+      </div>
     </div>
 
-    <!-- Action buttons -->
+    <!-- Action buttons overlay -->
     <div class="actions">
       <button class="action-btn" @click="emit('copy')" title="Copy HTML" aria-label="Copy HTML">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="9" y="9" width="13" height="13" rx="2" />
           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
         </svg>
+        <span>Copy</span>
       </button>
       <button class="action-btn" @click="emit('download')" title="Download" aria-label="Download">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
           <polyline points="7 10 12 15 17 10" />
           <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
+        <span>Save</span>
       </button>
     </div>
   </div>
@@ -107,33 +156,39 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
   position: relative;
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   background: var(--color-bg-elevated);
-  border: 2px solid transparent;
+  border: 2px solid var(--color-border);
   transition: all var(--transition-fast);
   cursor: pointer;
   overflow: hidden;
 }
 
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--color-border);
+  border-color: var(--color-accent);
+}
+
+.card.hovered {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 3%, transparent);
 }
 
 .card.selected {
   border-color: var(--color-accent);
   background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
 /* Selection button */
 .select-btn {
   position: absolute;
-  top: var(--space-sm);
-  right: var(--space-sm);
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
+  top: var(--space-xs);
+  right: var(--space-xs);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
   border: 2px solid var(--color-border);
   background: var(--color-bg-elevated);
   display: flex;
@@ -142,10 +197,10 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
   color: transparent;
   cursor: pointer;
   transition: all var(--transition-fast);
-  z-index: 1;
+  z-index: 2;
 }
 
-.select-btn:hover {
+.card:hover .select-btn {
   border-color: var(--color-accent);
   background: var(--color-bg-subtle);
 }
@@ -154,6 +209,7 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: white;
+  transform: scale(1.05);
 }
 
 /* Image wrapper */
@@ -163,11 +219,12 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
   justify-content: center;
   padding: var(--space-md);
   background: var(--color-bg-subtle);
-  min-height: 80px;
+  min-height: 88px;
+  position: relative;
 }
 
 .image-wrapper img {
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   opacity: 0;
   transition: opacity var(--transition-base);
 }
@@ -177,7 +234,7 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
 }
 
 .skeleton {
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: linear-gradient(
     90deg,
     var(--color-border) 25%,
@@ -200,9 +257,8 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
   width: 40px;
   height: 40px;
   border-radius: var(--radius-md);
-  background: var(--color-error);
-  color: white;
-  font-size: 20px;
+  background: var(--color-error-bg);
+  color: var(--color-error);
 }
 
 /* Info section */
@@ -212,33 +268,34 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
   justify-content: space-between;
   padding: var(--space-sm) var(--space-md) var(--space-md);
   gap: var(--space-sm);
-  min-height: 44px;
+  min-height: 48px;
 }
 
-.info-left {
+.info-main {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .format {
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-weight: var(--font-weight-bold);
+  padding: 3px 6px;
+  border-radius: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   flex-shrink: 0;
 }
 
-.format.png { background: var(--color-png-bg); color: var(--color-png-text); }
-.format.gif { background: var(--color-gif-bg); color: var(--color-gif-text); }
 .format.webp { background: var(--color-webp-bg); color: var(--color-webp-text); }
+.format.gif { background: var(--color-gif-bg); color: var(--color-gif-text); }
+.format.png { background: var(--color-png-bg); color: var(--color-png-text); }
 
 .emotion {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -249,18 +306,18 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
 /* Multi-format badges */
 .multi-badges {
   display: flex;
-  gap: 2px;
+  gap: 3px;
   flex-shrink: 0;
 }
 
 .format-dot {
-  font-size: 8px;
-  font-weight: var(--font-weight-semibold);
+  font-size: 9px;
+  font-weight: var(--font-weight-bold);
   padding: 2px 4px;
-  border-radius: 3px;
+  border-radius: 4px;
   background: var(--color-border);
   color: var(--color-text-tertiary);
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .format-dot.current {
@@ -269,46 +326,59 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
   color: white;
 }
 
-/* Action buttons */
+/* Action buttons overlay */
 .actions {
-  display: flex;
-  padding: 0 var(--space-md) var(--space-md);
-  gap: var(--space-xs);
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.card:hover .actions {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .actions {
-    opacity: 1;
-  }
-}
-
-.action-btn {
-  flex: 1;
-  padding: 8px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-elevated);
-  color: var(--color-text-primary);
-  cursor: pointer;
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-sm);
+  background: color-mix(in srgb, var(--color-bg-elevated) 90%, transparent);
+  opacity: 0;
   transition: all var(--transition-fast);
 }
 
-.action-btn:hover {
-  background: var(--color-bg-subtle);
-  border-color: var(--color-border-hover);
+.card:hover .actions,
+.card.selected .actions {
+  opacity: 1;
 }
 
-.action-btn:active {
-  transform: scale(0.96);
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px var(--space-sm);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--color-border);
+}
+
+.action-btn:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+  transform: scale(1.05);
+}
+
+.action-btn svg {
+  flex-shrink: 0;
+}
+
+.action-btn span {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Always show actions on touch devices */
+@media (hover: none) {
+  .actions {
+    opacity: 0.9;
+  }
 }
 
 /* Responsive */
@@ -317,27 +387,36 @@ const showTooltip = computed(() => props.emoji.emotion.length > 15)
     min-width: 0;
   }
 
+  .select-btn {
+    width: 26px;
+    height: 26px;
+  }
+
   .image-wrapper {
     padding: var(--space-sm);
-    min-height: 64px;
+    min-height: 72px;
   }
 
   .info {
     padding: var(--space-xs) var(--space-sm) var(--space-sm);
-    min-height: 40px;
+    min-height: 44px;
+  }
+
+  .format {
+    font-size: 10px;
+    padding: 2px 5px;
   }
 
   .emotion {
-    font-size: var(--font-size-sm);
-  }
-
-  .actions {
-    opacity: 1;
-    padding: 0 var(--space-sm) var(--space-sm);
+    font-size: var(--font-size-xs);
   }
 
   .action-btn {
-    padding: 6px;
+    padding: 6px var(--space-xs);
+  }
+
+  .action-btn span {
+    font-size: 9px;
   }
 }
 </style>

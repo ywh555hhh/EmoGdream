@@ -1,0 +1,27 @@
+{
+  "characters": {
+    "nina": { "name": "Nina", "group": "MyGO" },
+    "nijika": { "name": "Nijika", "group": "MyGO" },
+    "tomori": { "name": "Tomori", "group": "MyGO" },
+    "momoka": { "name": "Momoka", "group": "MyGO" },
+    "subaru": { "name": "Subaru", "group": "MyGO" },
+    "hitori": { "name": "Hitori", "group": "MyGO" },
+    "ikuyo": { "name": "Ikuyo", "group": "MyGO" },
+    "soyo": { "name": "Soyo", "group": "MyGO" },
+    "taki": { "name": "Taki", "group": "MyGO" },
+    "tomo": { "name": "Tomo", "group": "MyGO" },
+    "rupa": { "name": "Rupa", "group": "MyGO" },
+    "sakiko": { "name": "Sakiko", "group": "MyGO" },
+    "ryo": { "name": "Ryo", "group": "MyGO" },
+    "uika": { "name": "Uika", "group": "MyGO" },
+    "nyamu": { "name": "Nyamu", "group": "MyGO" },
+    "mutsumi": { "name": "Mutsumi", "group": "MyGO" },
+    "raana": { "name": "Raana", "group": "MyGO" },
+    "umiri": { "name": "Umiri", "group": "MyGO" },
+    "gbc": { "name": "GBC", "group": "MyGO" },
+    "anon": { "name": "Anon", "group": "MyGO" },
+    "KB": { "name": "KB", "group": "MyGO" },
+    "mana": { "name": "Mana", "group": "MyGO" }
+  },
+  "formatPriority": ["webp", "png", "gif"]
+}
