@@ -111,7 +111,7 @@ npm run dev
 <img src="https://ywh555hhh.github.io/EmoGdream/stickers/gbc/gbc_embrace.webp" width="24" align="absmiddle">
 <img src="https://ywh555hhh.github.io/EmoGdream/stickers/mutsumi/mutsumi_act_cute.webp" width="24" align="absmiddle">
 <img src="https://ywh555hhh.github.io/EmoGdream/stickers/umiri/umiri_good_job.webp" width="24" align="absmiddle">
-<img src="https://ywh555hhh.github.io/EmoGdream/stickers/kb/kb_pat_head.png" width="24" align="absmiddle">
+<img src="https://ywh555hhh.github.io/EmoGdream/stickers/kB/kb_pat_head.png" width="24" align="absmiddle">
 <img src="https://ywh555hhh.github.io/EmoGdream/stickers/mana/mana_stretch.png" width="24" align="absmiddle">
 
 </div>
@@ -141,7 +141,7 @@ npm run dev
 | Raana <img src="https://ywh555hhh.github.io/EmoGdream/stickers/raana/raana_pet_cat.webp" width="16" align="absmiddle"> | Girls Band Party | 21 |
 | Umiri <img src="https://ywh555hhh.github.io/EmoGdream/stickers/umiri/umiri_good_job.webp" width="16" align="absmiddle"> | Girls Band Party | 29 |
 | Anon <img src="https://ywh555hhh.github.io/EmoGdream/stickers/anon/anon_hah.webp" width="16" align="absmiddle"> | It's MyGO!!!!! | 19 |
-| KB <img src="https://ywh555hhh.github.io/EmoGdream/stickers/kb/kb_pat_head.png" width="16" align="absmiddle"> | Solo Leveling | 8 |
+| KB <img src="https://ywh555hhh.github.io/EmoGdream/stickers/KB/kb_pat_head.png" width="16" align="absmiddle"> | Solo Leveling | 8 |
 | Mana <img src="https://ywh555hhh.github.io/EmoGdream/stickers/mana/mana_stretch.png" width="16" align="absmiddle"> | - | 3 |
 | GBC <img src="https://ywh555hhh.github.io/EmoGdream/stickers/gbc/gbc_embrace.webp" width="16" align="absmiddle"> | - | 8 |
 
@@ -156,34 +156,6 @@ npm run dev
 <img src="https://ywh555hhh.github.io/EmoGdream/stickers/ryo/ryo_like.png" width="16" align="absmiddle"> **Vite 7** - 超快构建
 <img src="https://ywh555hhh.github.io/EmoGdream/stickers/rupa/rupa_wiggle.webp" width="16" align="absmiddle"> **Vue Router** - 路由管理
 <img src="https://ywh555hhh.github.io/EmoGdream/stickers/umiri/umiri_buy_all_at_once.png" width="16" align="absmiddle"> **Pinia** - 状态管理
-
----
-
-## 📁 项目结构
-
-```
-EmoGdream/
-├── src/
-│   ├── components/
-│   │   └── EmojiCard.vue          # 表情卡片组件
-│   ├── composables/
-│   │   ├── useEmojis.ts          # 表情扫描和筛选
-│   │   ├── useBatchSelection.ts   # 批量选择逻辑
-│   │   ├── useClipboard.ts        # 剪贴板复制
-│   │   ├── useDownload.ts         # 文件下载
-│   │   └── useSizeControl.ts      # 尺寸控制
-│   ├── App.vue                  # 主应用
-│   └── main.ts                 # 入口文件
-├── public/
-│   └── stickers/                # 表情包目录 📁
-│       ├── nina/
-│       ├── hitori/
-│       ├── anon/
-│       └── ... (22个角色)
-├── index.html
-├── vite.config.ts
-└── package.json
-```
 
 ---
 
@@ -216,7 +188,7 @@ MIT License - 想用就用，想怎么改都可以！
 
 <div align="center">
 
-Made with <img src="https://ywh555hhh.github.io/EmoGdream/stickers/nyamu/nyamu_heart.png" width="16" align="absmiddle"> by [Claude](https://claude.ai)
+Made with <img src="https://ywh555hhh.github.io/EmoGdream/stickers/anon/anon_heart.webp" alt="anon_heart.webp" width="32" align="absmiddle"> by [Claude](https://claude.ai)
 
 <img src="https://ywh555hhh.github.io/EmoGdream/stickers/mutsumi/mutsumi_act_cute.webp" width="20" align="absmiddle">
 
