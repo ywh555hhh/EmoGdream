@@ -30,50 +30,11 @@ const imagePath = computed(() => {
 // Truncate emotion text if too long
 const truncatedEmotion = computed(() => {
   const text = props.emoji.emotion
-  return text.length > 16 ? text.slice(0, 15) + '…' : text
+  return text.length > 18 ? text.slice(0, 17) + '…' : text
 })
 
 // Show tooltip if text is truncated
-const showTooltip = computed(() => props.emoji.emotion.length > 16)
-
-// Get character name from emoji
-const characterName = computed(() => {
-  const nameMap: Record<string, string> = {
-    nina: 'Nina',
-    nijika: 'Nijika',
-    tomori: 'Tomori',
-    momoka: 'Momoka',
-    subaru: 'Subaru',
-    hitori: 'Hitori',
-    ikuyo: 'Ikuyo',
-    soyo: 'Soyo',
-    taki: 'Taki',
-    tomo: 'Tomo',
-    rupa: 'Rupa',
-    sakiko: 'Sakiko',
-    ryo: 'Ryo',
-    uika: 'Uika',
-    nyamu: 'Nyamu',
-    mutsumi: 'Mutsumi',
-    raana: 'Raana',
-    umiri: 'Umiri',
-    gbc: 'GBC',
-    anon: 'Anon',
-    KB: 'KB',
-    mana: 'Mana'
-  }
-  return nameMap[props.emoji.character] || props.emoji.character
-})
-
-// Get display format text
-const formatLabel = computed(() => {
-  const labels: Record<string, string> = {
-    webp: 'WebP',
-    png: 'PNG',
-    gif: 'GIF'
-  }
-  return labels[props.emoji.format] || props.emoji.format.toUpperCase()
-})
+const showTooltip = computed(() => props.emoji.emotion.length > 18)
 </script>
 
 <template>
@@ -113,24 +74,30 @@ const formatLabel = computed(() => {
       </div>
     </div>
 
-    <!-- Info section -->
+    <!-- Info section - centered labels -->
     <div class="info">
-      <!-- Row 1: Format -->
-      <div class="info-row">
-        <span class="format" :class="emoji.format">
-          {{ formatLabel }}
+      <!-- Emotion label -->
+      <span class="emotion" :title="showTooltip ? emoji.emotion : ''">{{ truncatedEmotion }}</span>
+
+      <!-- Format labels -->
+      <div class="formats">
+        <!-- Single format -->
+        <span v-if="!emoji.availableFormats || emoji.availableFormats.length === 1" class="format-label" :class="emoji.format">
+          {{ emoji.format === 'webp' ? 'WebP' : emoji.format.toUpperCase() }}
         </span>
-        <!-- Multi-format indicator on same row -->
-        <div v-if="emoji.availableFormats && emoji.availableFormats.length > 1" class="multi-badges" title="Multiple formats available">
-          <span v-for="f in emoji.availableFormats" :key="f" class="format-dot" :class="{ current: f === emoji.format }">
-            {{ f.toUpperCase() }}
+
+        <!-- Multiple formats - show all available -->
+        <div v-else class="multi-formats">
+          <span
+            v-for="fmt in ['webp', 'png', 'gif']"
+            :key="fmt"
+            v-show="emoji.availableFormats?.includes(fmt as any)"
+            class="format-pill"
+            :class="{ current: fmt === emoji.format }"
+          >
+            {{ fmt === 'webp' ? 'WebP' : fmt.toUpperCase() }}
           </span>
         </div>
-      </div>
-
-      <!-- Row 2: Emotion -->
-      <div class="info-row">
-        <span class="emotion" :title="showTooltip ? emoji.emotion : ''">{{ truncatedEmotion }}</span>
       </div>
     </div>
 
@@ -188,10 +155,10 @@ const formatLabel = computed(() => {
 /* Selection button */
 .select-btn {
   position: absolute;
-  top: var(--space-xs);
-  right: var(--space-xs);
-  width: 28px;
-  height: 28px;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
   border-radius: var(--radius-md);
   border: 2px solid var(--color-border);
   background: var(--color-bg-elevated);
@@ -213,7 +180,7 @@ const formatLabel = computed(() => {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: white;
-  transform: scale(1.05);
+  transform: scale(1.1);
 }
 
 /* Image wrapper */
@@ -265,76 +232,72 @@ const formatLabel = computed(() => {
   color: var(--color-error);
 }
 
-/* Info section */
+/* Info section - centered layout */
 .info {
   display: flex;
   flex-direction: column;
-  padding: var(--space-sm) var(--space-md) var(--space-md);
-  gap: var(--space-xs);
-  min-height: 56px;
-}
-
-.info-row {
-  display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  width: 100%;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  min-height: 52px;
 }
-
-.info-row:first-child {
-  justify-content: space-between;
-}
-
-.info-row:last-child {
-  justify-content: flex-start;
-}
-
-.format {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  padding: 3px 6px;
-  border-radius: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  flex-shrink: 0;
-}
-
-.format.webp { background: var(--color-webp-bg); color: var(--color-webp-text); }
-.format.gif { background: var(--color-gif-bg); color: var(--color-gif-text); }
-.format.png { background: var(--color-png-bg); color: var(--color-png-text); }
 
 .emotion {
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: var(--font-weight-medium);
-  flex: 1;
-  min-width: 0;
+  max-width: 100%;
 }
 
-/* Multi-format badges */
-.multi-badges {
+/* Format labels container */
+.formats {
   display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Single format label */
+.format-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.format-label.webp { background: var(--color-webp-bg); color: var(--color-webp-text); }
+.format-label.gif { background: var(--color-gif-bg); color: var(--color-gif-text); }
+.format-label.png { background: var(--color-png-bg); color: var(--color-png-text); }
+
+/* Multiple formats pills */
+.multi-formats {
+  display: flex;
+  align-items: center;
   gap: 3px;
-  flex-shrink: 0;
 }
 
-.format-dot {
-  font-size: 8px;
-  font-weight: var(--font-weight-bold);
-  padding: 2px 4px;
-  border-radius: 3px;
-  background: var(--color-border);
-  color: var(--color-text-tertiary);
-  opacity: 0.7;
+.format-pill {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
 }
 
-.format-dot.current {
-  opacity: 1;
+.format-pill.current {
   background: var(--color-accent);
+  border-color: var(--color-accent);
   color: white;
+  box-shadow: var(--shadow-xs);
 }
 
 /* Action buttons overlay */
@@ -399,8 +362,8 @@ const formatLabel = computed(() => {
   }
 
   .select-btn {
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
   }
 
   .image-wrapper {
@@ -409,23 +372,23 @@ const formatLabel = computed(() => {
   }
 
   .info {
-    padding: var(--space-xs) var(--space-sm) var(--space-sm);
-    min-height: 52px;
-    gap: var(--space-xs);
-  }
-
-  .format {
-    font-size: 10px;
-    padding: 2px 5px;
+    padding: var(--space-xs) var(--space-xs) var(--space-xs);
+    min-height: 48px;
+    gap: 4px;
   }
 
   .emotion {
     font-size: var(--font-size-xs);
   }
 
-  .format-dot {
-    font-size: 7px;
-    padding: 1px 3px;
+  .format-label,
+  .format-pill {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+
+  .format-pill {
+    padding: 2px 4px;
   }
 
   .action-btn {
